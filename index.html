@@ -199,6 +199,8 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
 .settings .card + .card { margin-top: 12px; }
 .settings p { margin: 6px 0 12px; }
 .btn-stack { display: grid; gap: 8px; }
+.steps { margin: 8px 0; padding-left: 20px; }
+.steps li { margin: 4px 0; }
 @media (max-width: 360px) {
   .timer { font-size: 42px; }
   .clock-now .time { font-size: 36px; }
@@ -227,6 +229,15 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     <div id="forgotBanner" class="banner hidden">
       <div id="forgotText"></div>
       <button class="btn" id="forgotFix">修改呢更</button>
+    </div>
+
+    <!-- iPhone Safari 未加主畫面先顯示 -->
+    <div id="installTip" class="banner hidden">
+      <div>📲 可以將打卡加去 iPhone 主畫面，一撳就開到</div>
+      <div class="row">
+        <button class="btn" id="installHow">睇教學</button>
+        <button class="btn ghost" id="installHide">唔使喇</button>
+      </div>
     </div>
 
     <div class="card status-card">
@@ -309,6 +320,17 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
         <input type="file" id="restoreFile" accept="application/json,.json" class="hidden">
       </div>
       <p class="muted small" id="lastBackup"></p>
+    </div>
+    <div class="card" id="installCard">
+      <strong>加去 iPhone 主畫面</strong>
+      <p class="muted small hidden" id="installDone">✓ 你而家用緊主畫面版本。</p>
+      <ol class="small steps">
+        <li>用 <b>Safari</b> 打開呢個網頁</li>
+        <li>撳底部嘅「分享」掣（方格加向上箭嘴）；新版 iOS 要先撳右下角「⋯」</li>
+        <li>向下捲，揀「<b>加入主畫面</b>」</li>
+        <li>撳右上角「<b>加入</b>」，主畫面就會出現「打卡」圖示</li>
+      </ol>
+      <p class="muted small">⚠️ Safari 同主畫面版本嘅資料係分開儲存。Safari 入面已經有記錄嘅話，加之前先「下載備份」，加完喺主畫面版本「由備份還原」。</p>
     </div>
     <div class="card">
       <strong>外觀</strong>
@@ -521,6 +543,21 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     window.scrollTo(0, 0);
   }
   document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+
+  // ---------- 加去主畫面教學 ----------
+  // iPad 新版扮 Mac，要睇埋有冇觸控
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+  const TIP_KEY = KEY + '.installTipHidden';
+  let tipHidden = false;
+  try { tipHidden = localStorage.getItem(TIP_KEY) === '1'; } catch (e) {}
+  $('installTip').classList.toggle('hidden', !isIOS || isStandalone || tipHidden);
+  $('installDone').classList.toggle('hidden', !isStandalone);
+  $('installHow').onclick = () => { showTab('settings'); $('installCard').scrollIntoView({ block: 'start', behavior: 'smooth' }); };
+  $('installHide').onclick = () => {
+    $('installTip').classList.add('hidden');
+    try { localStorage.setItem(TIP_KEY, '1'); } catch (e) {}
+  };
 
   // ---------- 打卡動作 ----------
   // skipCheck：已經喺「呢更已經 X 小時」確認咗

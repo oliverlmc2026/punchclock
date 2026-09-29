@@ -6,6 +6,41 @@
   const HOUR = 60 * MIN;
   const DAY = 24 * HOUR;
 
+  // ---------- 文字（中 / 英） ----------
+  const MSG = {
+    zh: {
+      alreadyIn: '已經上咗班', notIn: '未上班', alreadyBreak: '已經喺休息中', notBreak: '唔喺休息中',
+      needStart: '請輸入上班時間', startFuture: '上班時間唔可以遲過而家', endFuture: '下班時間唔可以遲過而家',
+      endAfterStart: '下班時間要遲過上班時間', max24: '一更唔可以超過 24 小時',
+      brkFuture: '休息 {n} 唔可以遲過而家', brkBeforeStart: '休息 {n} 早過上班時間', brkAfterEnd: '休息 {n} 遲過下班時間',
+      brkEndOrder: '休息 {n} 結束要遲過開始', brkEndAfterEnd: '休息 {n} 結束遲過下班時間',
+      brkOverlap: '休息時段有重疊', brkOpen: '已下班嘅記錄，每段休息都要有結束時間',
+      otherOpen: '已經有另一更未下班', overlap: '同 {d} 嘅另一更時間重疊',
+      badFile: '檔案內容有錯', badFormat: '檔案格式唔啱',
+      csvHead: ['日期', '上班', '下班', '跨日', '休息次數', '休息(分鐘)', '總時間(小時)', '淨工時(小時)', '淨工時(時:分)', '備註'],
+      csvOpen: '(未下班)', csvYes: '是',
+    },
+    en: {
+      alreadyIn: 'Already clocked in', notIn: 'Not clocked in', alreadyBreak: 'Already on a break', notBreak: 'Not on a break',
+      needStart: 'Please enter the clock-in time', startFuture: 'Clock-in can’t be in the future', endFuture: 'Clock-out can’t be in the future',
+      endAfterStart: 'Clock-out must be after clock-in', max24: 'A shift can’t be longer than 24 hours',
+      brkFuture: 'Break {n} can’t be in the future', brkBeforeStart: 'Break {n} starts before clock-in', brkAfterEnd: 'Break {n} starts after clock-out',
+      brkEndOrder: 'Break {n} must end after it starts', brkEndAfterEnd: 'Break {n} ends after clock-out',
+      brkOverlap: 'Breaks overlap', brkOpen: 'Every break in a finished shift needs an end time',
+      otherOpen: 'Another shift is still open', overlap: 'Overlaps another shift on {d}',
+      badFile: 'The file contents are invalid', badFormat: 'Unrecognised file format',
+      csvHead: ['Date', 'Start', 'End', 'Overnight', 'Breaks', 'Break (min)', 'Total (h)', 'Net (h)', 'Net (h:mm)', 'Note'],
+      csvOpen: '(open)', csvYes: 'Yes',
+    },
+  };
+  let lang = 'zh';
+  function setLang(l) { lang = MSG[l] ? l : 'zh'; }
+  // {x} 換做 v.x
+  function msg(key, v) {
+    const s = MSG[lang][key];
+    return v ? s.replace(/\{(\w+)\}/g, (_, k) => v[k]) : s;
+  }
+
   function uid() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   }
@@ -75,7 +110,7 @@
   function clone(shifts) { return JSON.parse(JSON.stringify(shifts)); }
 
   function clockIn(shifts, now, note) {
-    if (openShift(shifts)) throw new Error('已經上咗班');
+    if (openShift(shifts)) throw new Error(msg('alreadyIn'));
     const next = clone(shifts);
     next.push({ id: uid(), start: now, end: null, breaks: [], note: note || '' });
     return next;
@@ -84,8 +119,8 @@
   function breakStart(shifts, now) {
     const next = clone(shifts);
     const s = openShift(next);
-    if (!s) throw new Error('未上班');
-    if (openBreak(s)) throw new Error('已經喺休息中');
+    if (!s) throw new Error(msg('notIn'));
+    if (openBreak(s)) throw new Error(msg('alreadyBreak'));
     s.breaks.push({ start: now, end: null });
     return next;
   }
@@ -93,7 +128,7 @@
   function breakEnd(shifts, now) {
     const next = clone(shifts);
     const b = openBreak(openShift(next));
-    if (!b) throw new Error('唔喺休息中');
+    if (!b) throw new Error(msg('notBreak'));
     b.end = Math.max(now, b.start);
     return next;
   }
@@ -101,7 +136,7 @@
   function clockOut(shifts, now, note) {
     const next = clone(shifts);
     const s = openShift(next);
-    if (!s) throw new Error('未上班');
+    if (!s) throw new Error(msg('notIn'));
     const b = openBreak(s);
     if (b) b.end = Math.max(now, b.start); // 休息中直接下班 → 自動結束休息
     s.end = Math.max(now, s.start);
@@ -176,34 +211,34 @@
   // now（可選）：傳入就唔俾任何時間遲過而家
   function validateShift(shift, allShifts, now) {
     const errs = [];
-    if (!(shift.start > 0)) errs.push('請輸入上班時間');
+    if (!(shift.start > 0)) errs.push(msg('needStart'));
     if (now != null) {
-      if (shift.start > now) errs.push('上班時間唔可以遲過而家');
-      if (shift.end != null && shift.end > now) errs.push('下班時間唔可以遲過而家');
+      if (shift.start > now) errs.push(msg('startFuture'));
+      if (shift.end != null && shift.end > now) errs.push(msg('endFuture'));
     }
-    if (shift.end != null && shift.end <= shift.start) errs.push('下班時間要遲過上班時間');
-    if (shift.end != null && shift.end - shift.start > DAY) errs.push('一更唔可以超過 24 小時');
+    if (shift.end != null && shift.end <= shift.start) errs.push(msg('endAfterStart'));
+    if (shift.end != null && shift.end - shift.start > DAY) errs.push(msg('max24'));
     // 休息編號跟畫面次序（即係 breaks 陣列次序）
     let openCount = 0;
     shift.breaks.forEach((b, i) => {
-      const n = '休息 ' + (i + 1);
+      const n = { n: i + 1 };
       if (b.end == null) openCount++;
-      if (now != null && (b.start > now || (b.end != null && b.end > now))) errs.push(n + ' 唔可以遲過而家');
-      if (b.start < shift.start) errs.push(n + ' 早過上班時間');
-      if (shift.end != null && b.start > shift.end) errs.push(n + ' 遲過下班時間');
-      if (b.end != null && b.end <= b.start) errs.push(n + ' 結束要遲過開始');
-      if (b.end != null && shift.end != null && b.end > shift.end) errs.push(n + ' 結束遲過下班時間');
+      if (now != null && (b.start > now || (b.end != null && b.end > now))) errs.push(msg('brkFuture', n));
+      if (b.start < shift.start) errs.push(msg('brkBeforeStart', n));
+      if (shift.end != null && b.start > shift.end) errs.push(msg('brkAfterEnd', n));
+      if (b.end != null && b.end <= b.start) errs.push(msg('brkEndOrder', n));
+      if (b.end != null && shift.end != null && b.end > shift.end) errs.push(msg('brkEndAfterEnd', n));
     });
     // 重疊檢查要按時間排序
     const sorted = shift.breaks.slice().sort((a, b) => a.start - b.start);
     for (let i = 1; i < sorted.length; i++) {
       const prev = sorted[i - 1];
-      if (prev.end == null || prev.end > sorted[i].start) { errs.push('休息時段有重疊'); break; }
+      if (prev.end == null || prev.end > sorted[i].start) { errs.push(msg('brkOverlap')); break; }
     }
-    if (openCount > 0 && shift.end != null) errs.push('已下班嘅記錄，每段休息都要有結束時間');
+    if (openCount > 0 && shift.end != null) errs.push(msg('brkOpen'));
     if (shift.end == null) {
       const others = (allShifts || []).filter(s => s.id !== shift.id && s.end == null);
-      if (others.length) errs.push('已經有另一更未下班');
+      if (others.length) errs.push(msg('otherOpen'));
     }
     // 同其他更重疊
     const sEnd = shift.end == null ? Infinity : shift.end;
@@ -211,7 +246,7 @@
       if (o.id === shift.id) continue;
       const oEnd = o.end == null ? Infinity : o.end;
       if (shift.start < oEnd && o.start < sEnd) {
-        errs.push('同 ' + dayKey(o.start) + ' 嘅另一更時間重疊');
+        errs.push(msg('overlap', { d: dayKey(o.start) }));
         break;
       }
     }
@@ -242,14 +277,14 @@
   }
 
   function toCSV(shifts, now) {
-    const header = ['日期', '上班', '下班', '跨日', '休息次數', '休息(分鐘)', '總時間(小時)', '淨工時(小時)', '淨工時(時:分)', '備註'];
+    const header = msg('csvHead');
     const rows = shifts.slice().sort((a, b) => a.start - b.start).map(s => {
       const crosses = s.end != null && dayKey(s.end) !== dayKey(s.start);
       return [
         dayKey(s.start),
         fmtClock(s.start),
-        s.end == null ? '(未下班)' : fmtClock(s.end),
-        crosses ? '是' : '',
+        s.end == null ? msg('csvOpen') : fmtClock(s.end),
+        crosses ? msg('csvYes') : '',
         s.breaks.length,
         Math.round(breakMs(s, now) / MIN),
         hoursDecimal(grossMs(s, now)),
@@ -264,7 +299,7 @@
 
   // ---------- 備份 ----------
   function normalizeShift(s) {
-    if (!s || typeof s.start !== 'number') throw new Error('檔案內容有錯');
+    if (!s || typeof s.start !== 'number') throw new Error(msg('badFile'));
     return {
       id: s.id || uid(),
       start: s.start,
@@ -278,14 +313,14 @@
   // 還原備份用：有任何一更唔啱就成個檔案唔收
   function normalizeImport(data) {
     const arr = Array.isArray(data) ? data : (data && Array.isArray(data.shifts) ? data.shifts : null);
-    if (!arr) throw new Error('檔案格式唔啱');
+    if (!arr) throw new Error(msg('badFormat'));
     return arr.map(normalizeShift);
   }
 
   // 讀本機資料用：壞咗嘅更跳過，唔會因為一更壞咗就連其他記錄都唔要
   // ok=false 代表成份資料讀唔到；skipped = 略過咗幾多更
   function parseStored(raw) {
-    const empty = { shifts: [], theme: 'auto', lastBackup: null };
+    const empty = { shifts: [], theme: 'auto', lang: null, lastBackup: null };
     if (raw == null || raw === '') return { ok: true, state: empty, skipped: 0 };
     let d;
     try { d = JSON.parse(raw); } catch (e) { return { ok: false, state: empty, skipped: 0 }; }
@@ -302,13 +337,14 @@
       state: {
         shifts,
         theme: ['auto', 'light', 'dark'].includes(d.theme) ? d.theme : 'auto',
+        lang: ['zh', 'en'].includes(d.lang) ? d.lang : null, // null = 跟瀏覽器
         lastBackup: typeof d.lastBackup === 'number' ? d.lastBackup : null,
       },
     };
   }
 
   const api = {
-    MIN, HOUR, DAY, uid, pad, keepPrecise, dayKey, startOfDay, startOfWeek, addDays, startOfMonth, addMonths,
+    MIN, HOUR, DAY, setLang, msg, uid, pad, keepPrecise, dayKey, startOfDay, startOfWeek, addDays, startOfMonth, addMonths,
     openShift, openBreak, status, clockIn, breakStart, breakEnd, clockOut, clockOutCheck,
     breakMs, grossMs, netMs, shiftsInRange, sumNet, summarize, dailyTotals,
     validateShift, fmtDur, fmtClock, hoursDecimal, toCSV, normalizeImport, parseStored,

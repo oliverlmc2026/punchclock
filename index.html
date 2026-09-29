@@ -201,6 +201,8 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
 .btn-stack { display: grid; gap: 8px; }
 .steps { margin: 8px 0; padding-left: 20px; }
 .steps li { margin: 4px 0; }
+.punch { position: relative; }
+.lang-quick { position: absolute; top: 0; right: 0; min-height: 36px; padding: 6px 10px; font-size: 14px; }
 @media (max-width: 360px) {
   .timer { font-size: 42px; }
   .clock-now .time { font-size: 36px; }
@@ -214,13 +216,14 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
   <div id="dataBanner" class="banner hidden" role="alert" style="margin:0 0 12px">
     <div id="dataText"></div>
     <div class="row" style="flex-wrap:wrap">
-      <button class="btn" id="dataDownload">下載原始資料</button>
-      <button class="btn primary" id="dataAccept">確認，繼續使用</button>
+      <button class="btn" id="dataDownload" data-i18n="dataDownload">下載原始資料</button>
+      <button class="btn primary" id="dataAccept" data-i18n="dataAccept">確認，繼續使用</button>
     </div>
   </div>
 
   <!-- 打卡 -->
-  <section id="view-punch" data-view>
+  <section id="view-punch" data-view class="punch">
+    <button class="btn ghost lang-quick" id="langQuick" aria-label="English">EN</button>
     <div class="clock-now">
       <div class="time num" id="nowTime">--:--</div>
       <div class="date" id="nowDate"></div>
@@ -228,15 +231,15 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
 
     <div id="forgotBanner" class="banner hidden">
       <div id="forgotText"></div>
-      <button class="btn" id="forgotFix">修改呢更</button>
+      <button class="btn" id="forgotFix" data-i18n="forgotFix">修改呢更</button>
     </div>
 
     <!-- iPhone Safari 未加主畫面先顯示 -->
     <div id="installTip" class="banner hidden">
-      <div>📲 可以將打卡加去 iPhone 主畫面，一撳就開到</div>
+      <div data-i18n="installTip">📲 可以將打卡加去 iPhone 主畫面，一撳就開到</div>
       <div class="row">
-        <button class="btn" id="installHow">睇教學</button>
-        <button class="btn ghost" id="installHide">唔使喇</button>
+        <button class="btn" id="installHow" data-i18n="installHow">睇教學</button>
+        <button class="btn ghost" id="installHide" data-i18n="installHide">唔使喇</button>
       </div>
     </div>
 
@@ -245,29 +248,29 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
       <div class="timer num" id="timer">0:00</div>
       <div class="timer-sub num" id="timerSub"></div>
       <div id="actions" class="actions"></div>
-      <input id="noteInput" class="note-input" type="text" maxlength="200" placeholder="備註（可選），會跟今次打卡一齊儲存">
+      <input id="noteInput" class="note-input" type="text" maxlength="200" placeholder="備註（可選），會跟今次打卡一齊儲存" data-i18n-attr="placeholder:notePh">
     </div>
 
     <div class="stat-row">
-      <div class="stat"><div class="lbl">今日</div><div class="val num" id="sToday">0:00</div></div>
-      <div class="stat"><div class="lbl">本週</div><div class="val num" id="sWeek">0:00</div></div>
-      <div class="stat"><div class="lbl">本月</div><div class="val num" id="sMonth">0:00</div></div>
+      <div class="stat"><div class="lbl" data-i18n="today">今日</div><div class="val num" id="sToday">0:00</div></div>
+      <div class="stat"><div class="lbl" data-i18n="thisWeek">本週</div><div class="val num" id="sWeek">0:00</div></div>
+      <div class="stat"><div class="lbl" data-i18n="thisMonth">本月</div><div class="val num" id="sMonth">0:00</div></div>
     </div>
 
-    <h2>今日記錄</h2>
+    <h2 data-i18n="todayRecords">今日記錄</h2>
     <div id="todayList" class="today-list"></div>
   </section>
 
   <!-- 記錄 -->
   <section id="view-log" data-view class="hidden">
     <div class="row spread">
-      <h1>記錄</h1>
-      <button class="btn primary" id="addShift">＋ 補打卡</button>
+      <h1 data-i18n="records">記錄</h1>
+      <button class="btn primary" id="addShift" data-i18n="addShiftBtn">＋ 補打卡</button>
     </div>
     <div class="period-nav">
-      <button class="btn icon-btn" id="logPrev" aria-label="上個月">‹</button>
+      <button class="btn icon-btn" id="logPrev" aria-label="上個月" data-i18n-attr="aria-label:prevMonth">‹</button>
       <div class="lbl num" id="logMonthLbl"></div>
-      <button class="btn icon-btn" id="logNext" aria-label="下個月">›</button>
+      <button class="btn icon-btn" id="logNext" aria-label="下個月" data-i18n-attr="aria-label:nextMonth">›</button>
     </div>
     <div class="muted small" id="logSummary"></div>
     <div id="logList"></div>
@@ -275,75 +278,80 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
 
   <!-- 統計 -->
   <section id="view-stats" data-view class="hidden">
-    <h1>統計</h1>
-    <div class="seg" role="group" aria-label="統計範圍">
-      <button data-range="week" aria-pressed="true">週</button>
-      <button data-range="month" aria-pressed="false">月</button>
+    <h1 data-i18n="stats">統計</h1>
+    <div class="seg" role="group" aria-label="統計範圍" data-i18n-attr="aria-label:statsRange">
+      <button data-range="week" aria-pressed="true" data-i18n="week">週</button>
+      <button data-range="month" aria-pressed="false" data-i18n="month">月</button>
     </div>
     <div class="period-nav">
-      <button class="btn icon-btn" id="stPrev" aria-label="上一段">‹</button>
+      <button class="btn icon-btn" id="stPrev" aria-label="上一段" data-i18n-attr="aria-label:prevPeriod">‹</button>
       <div class="lbl num" id="stLbl"></div>
-      <button class="btn icon-btn" id="stNext" aria-label="下一段">›</button>
+      <button class="btn icon-btn" id="stNext" aria-label="下一段" data-i18n-attr="aria-label:nextPeriod">›</button>
     </div>
     <div class="card">
-      <div class="muted small">淨工時</div>
+      <div class="muted small" data-i18n="netHours">淨工時</div>
       <div class="big-total num" id="stTotal">0:00</div>
       <div class="bars" id="stBars"></div>
     </div>
     <div class="card" style="margin-top:12px">
-      <div class="kv"><span>工作日數</span><span class="num" id="stDays">0</span></div>
-      <div class="kv"><span>每日平均淨工時</span><span class="num" id="stAvg">0:00</span></div>
-      <div class="kv"><span>總時間（含休息）</span><span class="num" id="stGross">0:00</span></div>
-      <div class="kv"><span>休息總時間</span><span class="num" id="stBreak">0:00</span></div>
-      <div class="kv"><span>小數顯示</span><span class="num" id="stDec">0.00 小時</span></div>
+      <div class="kv"><span data-i18n="daysWorked">工作日數</span><span class="num" id="stDays">0</span></div>
+      <div class="kv"><span data-i18n="avgNet">每日平均淨工時</span><span class="num" id="stAvg">0:00</span></div>
+      <div class="kv"><span data-i18n="grossTotal">總時間（含休息）</span><span class="num" id="stGross">0:00</span></div>
+      <div class="kv"><span data-i18n="breakTotal">休息總時間</span><span class="num" id="stBreak">0:00</span></div>
+      <div class="kv"><span data-i18n="decimal">小數顯示</span><span class="num" id="stDec">0.00 小時</span></div>
     </div>
   </section>
 
   <!-- 設定 -->
   <section id="view-settings" data-view class="hidden settings">
-    <h1>匯出同設定</h1>
+    <h1 data-i18n="settingsTitle">匯出同設定</h1>
     <div class="card">
-      <strong>匯出 CSV</strong>
-      <p class="muted small">每更一行，Excel / Numbers / Google Sheets 都開到。</p>
+      <strong data-i18n="exportCsvTitle">匯出 CSV</strong>
+      <p class="muted small" data-i18n="exportCsvDesc">每更一行，Excel / Numbers / Google Sheets 都開到。</p>
       <div class="field">
-        <label for="exportRange">範圍</label>
+        <label for="exportRange" data-i18n="range">範圍</label>
         <select id="exportRange"></select>
       </div>
-      <button class="btn primary block" id="exportCsv" style="margin-top:12px">下載 CSV</button>
+      <button class="btn primary block" id="exportCsv" style="margin-top:12px" data-i18n="downloadCsv">下載 CSV</button>
     </div>
     <div class="card">
-      <strong>備份同還原</strong>
-      <p class="muted small">資料只儲存喺呢部裝置嘅瀏覽器入面。清除瀏覽器資料或者換手機前，記得先備份。</p>
+      <strong data-i18n="backupTitle">備份同還原</strong>
+      <p class="muted small" data-i18n="backupDesc">資料只儲存喺呢部裝置嘅瀏覽器入面。清除瀏覽器資料或者換手機前，記得先備份。</p>
       <div class="btn-stack">
-        <button class="btn" id="backupBtn">下載備份（JSON）</button>
-        <button class="btn" id="restoreBtn">由備份還原…</button>
+        <button class="btn" id="backupBtn" data-i18n="backupBtn">下載備份（JSON）</button>
+        <button class="btn" id="restoreBtn" data-i18n="restoreBtn">由備份還原…</button>
         <input type="file" id="restoreFile" accept="application/json,.json" class="hidden">
       </div>
       <p class="muted small" id="lastBackup"></p>
     </div>
     <div class="card" id="installCard">
-      <strong>加去 iPhone 主畫面</strong>
-      <p class="muted small hidden" id="installDone">✓ 你而家用緊主畫面版本。</p>
-      <ol class="small steps">
+      <strong data-i18n="installTitle">加去 iPhone 主畫面</strong>
+      <p class="muted small hidden" id="installDone" data-i18n="installDone">✓ 你而家用緊主畫面版本。</p>
+      <ol class="small steps" data-i18n="installSteps">
         <li>用 <b>Safari</b> 打開呢個網頁</li>
         <li>撳底部嘅「分享」掣（方格加向上箭嘴）；新版 iOS 要先撳右下角「⋯」</li>
         <li>向下捲，揀「<b>加入主畫面</b>」</li>
         <li>撳右上角「<b>加入</b>」，主畫面就會出現「打卡」圖示</li>
       </ol>
-      <p class="muted small">⚠️ Safari 同主畫面版本嘅資料係分開儲存。Safari 入面已經有記錄嘅話，加之前先「下載備份」，加完喺主畫面版本「由備份還原」。</p>
+      <p class="muted small" data-i18n="installWarn">⚠️ Safari 同主畫面版本嘅資料係分開儲存。Safari 入面已經有記錄嘅話，加之前先「下載備份」，加完喺主畫面版本「由備份還原」。</p>
     </div>
     <div class="card">
-      <strong>外觀</strong>
-      <div class="seg" role="group" aria-label="主題" style="margin-top:10px">
-        <button data-theme-opt="auto">跟系統</button>
-        <button data-theme-opt="light">淺色</button>
-        <button data-theme-opt="dark">深色</button>
+      <strong data-i18n="appearance">外觀</strong>
+      <div class="seg" role="group" aria-label="主題" data-i18n-attr="aria-label:theme" style="margin-top:10px">
+        <button data-theme-opt="auto" data-i18n="themeAuto">跟系統</button>
+        <button data-theme-opt="light" data-i18n="themeLight">淺色</button>
+        <button data-theme-opt="dark" data-i18n="themeDark">深色</button>
+      </div>
+      <div style="margin-top:14px"><strong>語言 Language</strong></div>
+      <div class="seg" role="group" aria-label="語言 Language" style="margin-top:10px">
+        <button data-lang-opt="zh" lang="zh-Hant">中文</button>
+        <button data-lang-opt="en" lang="en">English</button>
       </div>
     </div>
     <div class="card">
-      <strong>危險區</strong>
-      <p class="muted small">刪除全部記錄，無法復原。</p>
-      <button class="btn danger block" id="wipeBtn">刪除全部記錄</button>
+      <strong data-i18n="danger">危險區</strong>
+      <p class="muted small" data-i18n="dangerDesc">刪除全部記錄，無法復原。</p>
+      <button class="btn danger block" id="wipeBtn" data-i18n="wipeBtn">刪除全部記錄</button>
     </div>
     <p class="muted small" style="text-align:center;margin-top:20px" id="storageInfo"></p>
   </section>
@@ -352,16 +360,16 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
 <nav class="tabs" role="tablist">
   <div class="inner">
     <button role="tab" data-tab="punch" aria-selected="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>打卡
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="tabPunch">打卡</span>
     </button>
     <button role="tab" data-tab="log" aria-selected="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>記錄
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg><span data-i18n="tabLog">記錄</span>
     </button>
     <button role="tab" data-tab="stats" aria-selected="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>統計
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg><span data-i18n="tabStats">統計</span>
     </button>
     <button role="tab" data-tab="settings" aria-selected="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>匯出
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span data-i18n="tabExport">匯出</span>
     </button>
   </div>
 </nav>
@@ -371,32 +379,32 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
   <form class="sheet" id="editForm" method="dialog" novalidate>
     <div class="row spread">
       <strong id="editTitle">修改記錄</strong>
-      <button type="button" class="btn ghost" id="editClose">取消</button>
+      <button type="button" class="btn ghost" id="editClose" data-i18n="cancel">取消</button>
     </div>
-    <div class="muted small">所有時間都唔可以遲過而家</div>
+    <div class="muted small" data-i18n="noFuture">所有時間都唔可以遲過而家</div>
     <div class="field">
-      <label>上班</label>
+      <label data-i18n="start">上班</label>
       <div class="dt"><input type="date" id="eStartD" required><input type="time" id="eStartT" required></div>
       <div class="hint hidden" id="eStartHint" role="status" aria-live="polite"></div>
     </div>
     <div class="field">
-      <label>下班 <span class="muted small">（留空 = 仲未下班）</span></label>
+      <label><span data-i18n="end">下班</span> <span class="muted small" data-i18n="endBlank">（留空 = 仲未下班）</span></label>
       <div class="dt"><input type="date" id="eEndD"><input type="time" id="eEndT"></div>
       <div class="hint hidden" id="eEndHint" role="status" aria-live="polite"></div>
     </div>
     <div class="field">
-      <div class="row spread"><label style="margin:0">休息</label><button type="button" class="btn ghost" id="eAddBreak">＋ 加休息</button></div>
+      <div class="row spread"><label style="margin:0" data-i18n="breaks">休息</label><button type="button" class="btn ghost" id="eAddBreak" data-i18n="addBreak">＋ 加休息</button></div>
       <div id="eBreaks"></div>
     </div>
     <div class="field">
-      <label for="eNote">備註</label>
+      <label for="eNote" data-i18n="note">備註</label>
       <textarea id="eNote" rows="2" maxlength="200"></textarea>
     </div>
     <div class="muted small" id="eCalc" style="margin-top:10px"></div>
     <div class="errors" id="eErrors"></div>
     <div class="sheet-actions">
-      <button type="button" class="btn danger" id="eDelete">刪除</button>
-      <button type="submit" class="btn primary" id="eSave">儲存</button>
+      <button type="button" class="btn danger" id="eDelete" data-i18n="delete">刪除</button>
+      <button type="submit" class="btn primary" id="eSave" data-i18n="save">儲存</button>
     </div>
   </form>
 </dialog>
@@ -421,6 +429,125 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
   const $ = id => document.getElementById(id);
   const WD = ['日', '一', '二', '三', '四', '五', '六'];
   const FORGOT_HOURS = 14;
+
+  // ---------- 語言 ----------
+  const WD_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const MON_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const MONTH_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+  // 值可以係字串（{x} 換做 v.x）或者函數（要處理英文單複數）
+  const DICT = {
+    zh: {
+      notSaved: '⚠️ 未儲存：請先處理頂部嘅資料問題', saveFailed: '儲存失敗：瀏覽器唔俾寫入資料',
+      cancel: '取消', ok: '確定',
+      tIn: '已上班打卡 {t}', tBs: '開始休息 {t}', tBe: '休息結束 {t}', tOut: '已下班打卡 {t}', tOutNet: '，淨工時 {d}',
+      fixEnd: '改返下班時間', outNow: '就係而家下班', startedAt: '由 {date} {time} 開始。',
+      longEdit: '一更最長 24 小時，要改返正確嘅下班時間先儲存到。', longConfirm: '係咪忘記咗打卡？', longTitle: '呢更已經 {d}',
+      stOff: '未上班', stWorking: '工作中', stBreak: '休息中',
+      btnIn: '上班打卡', btnBs: '開始休息', btnOut: '下班打卡', btnBe: '結束休息', btnOutDirect: '直接下班',
+      lastOut: '上次下班：{when}', tapToStart: '撳下面個掣開始記錄',
+      inAt: '{t} 上班', inAtDay: '（{date}）', brkSoFar: ' · 已休息 {d}', onBreak: '休息緊 · 今更淨工時 {d}',
+      forgot: '由 {date} {time} 開始已經 {d}，係咪忘記咗下班打卡？可以改返正確嘅下班時間。',
+      noToday: '今日未有記錄', brkMeta: '休息 {d}（{n} 次）', noBrk: '冇休息',
+      live: '進行中', countsTo: '計入 {date}', overnight: '跨日',
+      logSum: '{days} 日 · {count} 更 · 淨工時 {d}',
+      logEmpty: '呢個月未有記錄<br><span class="small">可以撳「補打卡」手動加</span>',
+      thisWeekTag: '（本週）', hours: '{n} 小時',
+      allRecords: '全部記錄（{n} 更）', lastBackup: '上次備份：{when}', neverBackup: '仲未備份過',
+      storageInfo: '共 {n} 更記錄 · 只儲存喺呢部裝置',
+      fileAll: '打卡記錄_全部.csv', fileMonth: '打卡記錄_{m}.csv', fileBackup: '打卡備份_{d}.json', fileRaw: '打卡原始資料_{d}.json',
+      noneInRange: '呢個範圍冇記錄', exported: '已匯出 {n} 更',
+      restoreAsk: '還原會用備份入面嘅 {a} 更記錄，取代而家嘅 {b} 更。確定？', restore: '還原', restored: '已還原 {n} 更', restoreFail: '還原失敗：{e}',
+      noRecords: '冇記錄', wipeAsk: '確定刪除全部 {n} 更記錄？無法復原。', wipeAll: '全部刪除', wiped: '已刪除全部記錄',
+      rawCopyFail: '⚠️ 原始資料另存失敗，繼續嘅話會被覆蓋，建議先下載原始資料。',
+      acceptAsk: '確認之後，會用畫面上而家嘅 {n} 更記錄覆蓋儲存咗嘅資料。繼續？', cont: '繼續', savedN: '已儲存 {n} 更',
+      issueMem: '儲存咗嘅資料出咗問題，畫面繼續顯示之前載入咗嘅記錄。',
+      issueSkip: '有 {s} 更記錄格式唔啱，已經略過，其餘 {l} 更正常載入。',
+      issueBad: '讀唔到儲存咗嘅記錄，資料可能已經損壞。',
+      issueCopied: '原始資料已經另存一份。', issueNotCopied: '原始資料另存失敗，請先下載原始資料。',
+      issueWait: '你確認之前，任何改動都唔會儲存。',
+      titleAdd: '補打卡', titleConfirm: '確認下班時間', titleEdit: '修改記錄',
+      brkN: '休息 {n}', remove: '移除', to: '至', brkBlank: '（留空 = 仲休息緊）', noBrkRec: '冇休息記錄',
+      hintNextDay: '下班時間早過上班，已自動當係翌日（{date}）', hintSameDay: '下班日期已改返同上班同一日（{date}）',
+      needEnd: '請輸入下班時間', calc: '總時間 {g} − 休息 {b} = 淨工時 {n}',
+      movedEnd: '下班', movedBrk: v => v.n === 1 ? '休息' : v.n + ' 段休息', and: '同',
+      moved: v => v.what + '日期已跟住一齊移' + (v.later ? '後 ' : '前 ') + v.n + ' 日',
+      delAsk: '刪除呢更記錄？', del: '刪除', deleted: '已刪除', added: '已補打卡', saved: '已儲存',
+    },
+    en: {
+      notSaved: '⚠️ Not saved: sort out the data issue at the top first', saveFailed: 'Save failed: the browser won’t allow storage',
+      cancel: 'Cancel', ok: 'OK',
+      tIn: 'Clocked in at {t}', tBs: 'Break started at {t}', tBe: 'Break ended at {t}', tOut: 'Clocked out at {t}', tOutNet: ' · net {d}',
+      fixEnd: 'Fix clock-out time', outNow: 'Clock out now', startedAt: 'Started {date} {time}. ',
+      longEdit: 'A shift can be at most 24 hours — set the correct clock-out time to save it.', longConfirm: 'Did you forget to clock out?', longTitle: 'This shift has run {d}',
+      stOff: 'Off', stWorking: 'Working', stBreak: 'On break',
+      btnIn: 'Clock in', btnBs: 'Start break', btnOut: 'Clock out', btnBe: 'End break', btnOutDirect: 'Clock out',
+      lastOut: 'Last clock-out: {when}', tapToStart: 'Tap the button below to start',
+      inAt: 'In at {t}', inAtDay: ' ({date})', brkSoFar: ' · break {d}', onBreak: 'On break · shift net {d}',
+      forgot: 'Started {date} {time}, {d} ago. Forgot to clock out? You can set the correct clock-out time.',
+      noToday: 'No records today', brkMeta: v => 'Break ' + v.d + ' (' + v.n + '×)', noBrk: 'No breaks',
+      live: 'In progress', countsTo: 'Counts to {date}', overnight: 'Overnight',
+      logSum: v => plural(v.days, 'day', 'days') + ' · ' + plural(v.count, 'shift', 'shifts') + ' · net ' + v.d,
+      logEmpty: 'No records this month<br><span class="small">Tap “Add shift” to add one manually</span>',
+      thisWeekTag: ' (this week)', hours: '{n} hrs',
+      allRecords: v => 'All records (' + plural(v.n, 'shift', 'shifts') + ')', lastBackup: 'Last backup: {when}', neverBackup: 'Never backed up',
+      storageInfo: v => plural(v.n, 'shift', 'shifts') + ' · stored on this device only',
+      fileAll: 'punchclock_all.csv', fileMonth: 'punchclock_{m}.csv', fileBackup: 'punchclock_backup_{d}.json', fileRaw: 'punchclock_raw_{d}.json',
+      noneInRange: 'No records in this range', exported: v => 'Exported ' + plural(v.n, 'shift', 'shifts'),
+      restoreAsk: v => 'Restoring replaces your current ' + plural(v.b, 'shift', 'shifts') + ' with ' + plural(v.a, 'shift', 'shifts') + ' from the backup. Continue?',
+      restore: 'Restore', restored: v => 'Restored ' + plural(v.n, 'shift', 'shifts'), restoreFail: 'Restore failed: {e}',
+      noRecords: 'No records', wipeAsk: v => 'Delete all ' + plural(v.n, 'shift', 'shifts') + '? This can’t be undone.', wipeAll: 'Delete all', wiped: 'All records deleted',
+      rawCopyFail: '⚠️ Couldn’t keep a copy of the raw data, so continuing will overwrite it. Download the raw data first. ',
+      acceptAsk: v => 'This will overwrite the stored data with the ' + plural(v.n, 'shift', 'shifts') + ' shown now. Continue?', cont: 'Continue',
+      savedN: v => 'Saved ' + plural(v.n, 'shift', 'shifts'),
+      issueMem: 'There’s a problem with the stored data; still showing the records loaded earlier. ',
+      issueSkip: v => plural(v.s, 'shift was', 'shifts were') + ' malformed and skipped; the other ' + v.l + ' loaded normally. ',
+      issueBad: 'Couldn’t read the stored records; the data may be corrupted. ',
+      issueCopied: 'A copy of the raw data has been kept. ', issueNotCopied: 'Couldn’t keep a copy of the raw data — please download it first. ',
+      issueWait: 'No changes will be saved until you confirm.',
+      titleAdd: 'Add shift', titleConfirm: 'Confirm clock-out time', titleEdit: 'Edit shift',
+      brkN: 'Break {n}', remove: 'Remove', to: 'to', brkBlank: '(leave blank if still on break)', noBrkRec: 'No breaks',
+      hintNextDay: 'End is earlier than start, so it’s set to the next day ({date})', hintSameDay: 'End date set back to the start date ({date})',
+      needEnd: 'Please enter the clock-out time', calc: 'Total {g} − breaks {b} = net {n}',
+      movedEnd: 'end', movedBrk: v => v.n === 1 ? 'break' : v.n + ' breaks', and: ' and ',
+      moved: v => 'Also moved ' + v.what + ' ' + plural(v.n, 'day', 'days') + (v.later ? ' later' : ' earlier'),
+      delAsk: 'Delete this shift?', del: 'Delete', deleted: 'Deleted', added: 'Shift added', saved: 'Saved',
+    },
+  };
+  // 靜態文字（HTML 入面 data-i18n）：中文就用 HTML 原文，呢度淨係英文
+  const STATIC_EN = {
+    dataDownload: 'Download raw data', dataAccept: 'Confirm and continue', forgotFix: 'Edit this shift',
+    installTip: '📲 Add Punch Clock to your iPhone Home Screen to open it in one tap', installHow: 'Show me how', installHide: 'No thanks',
+    notePh: 'Note (optional), saved with this punch',
+    today: 'Today', thisWeek: 'This week', thisMonth: 'This month', todayRecords: 'Today’s records',
+    records: 'Records', addShiftBtn: '＋ Add shift', prevMonth: 'Previous month', nextMonth: 'Next month',
+    stats: 'Stats', statsRange: 'Stats range', week: 'Week', month: 'Month', prevPeriod: 'Previous', nextPeriod: 'Next',
+    netHours: 'Net hours', daysWorked: 'Days worked', avgNet: 'Average net per day', grossTotal: 'Total time (incl. breaks)',
+    breakTotal: 'Total breaks', decimal: 'Decimal',
+    settingsTitle: 'Export & settings', exportCsvTitle: 'Export CSV',
+    exportCsvDesc: 'One row per shift. Opens in Excel, Numbers or Google Sheets.', range: 'Range', downloadCsv: 'Download CSV',
+    backupTitle: 'Backup & restore',
+    backupDesc: 'Your data is stored only in this device’s browser. Back up before clearing browser data or changing phones.',
+    backupBtn: 'Download backup (JSON)', restoreBtn: 'Restore from backup…',
+    installTitle: 'Add to iPhone Home Screen', installDone: '✓ You’re using the Home Screen version.',
+    installSteps: '<li>Open this page in <b>Safari</b></li>' +
+      '<li>Tap the “Share” button at the bottom (square with an up arrow); on newer iOS, tap “⋯” at the bottom right first</li>' +
+      '<li>Scroll down and choose “<b>Add to Home Screen</b>”</li>' +
+      '<li>Tap “<b>Add</b>” at the top right — a “打卡” icon appears on your Home Screen</li>',
+    installWarn: '⚠️ Safari and the Home Screen version keep separate data. If Safari already has records, “Download backup” first, then “Restore from backup” in the Home Screen version.',
+    appearance: 'Appearance', theme: 'Theme', themeAuto: 'System', themeLight: 'Light', themeDark: 'Dark',
+    danger: 'Danger zone', dangerDesc: 'Delete all records. This can’t be undone.', wipeBtn: 'Delete all records',
+    tabPunch: 'Punch', tabLog: 'Records', tabStats: 'Stats', tabExport: 'Export',
+    cancel: 'Cancel', noFuture: 'Times can’t be in the future', start: 'Clock in', end: 'Clock out',
+    endBlank: '(leave blank if still working)', breaks: 'Breaks', addBreak: '＋ Add break', note: 'Note', delete: 'Delete', save: 'Save',
+  };
+  let lang = 'zh';
+
+  function t(key, v) {
+    const s = DICT[lang][key];
+    if (typeof s === 'function') return s(v || {});
+    return v ? s.replace(/\{(\w+)\}/g, (_, k) => v[k]) : s;
+  }
 
   // ---------- 儲存 ----------
   const CORRUPT_PREFIX = KEY + '.corrupt.';
@@ -457,11 +584,11 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
   }
 
   function save() {
-    if (saveBlocked) { toast('⚠️ 未儲存：請先處理頂部嘅資料問題'); return; }
+    if (saveBlocked) { toast(t('notSaved')); return; }
     try {
       localStorage.setItem(KEY, JSON.stringify(state));
     } catch (e) {
-      toast('儲存失敗：瀏覽器唔俾寫入資料');
+      toast(t('saveFailed'));
     }
   }
 
@@ -488,7 +615,7 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     const acts = $('confirmActions');
     // 一個選擇：左取消右確定；多過一個：直排，取消放最底
     const stack = choices.length > 1;
-    const cancel = '<button class="btn" value="cancel">取消</button>';
+    const cancel = '<button class="btn" value="cancel">' + esc(t('cancel')) + '</button>';
     const btns = choices.map(c => '<button class="btn ' + (c.cls || '') + '" value="' + esc(c.value) + '">' + esc(c.label) + '</button>').join('');
     acts.classList.toggle('stack', stack);
     acts.innerHTML = stack ? btns + cancel : cancel + btns;
@@ -502,16 +629,30 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
 
   // 代替 confirm()：返回 Promise<boolean>
   function ask(msg, okLabel) {
-    return choose(msg, [{ value: 'ok', label: okLabel || '確定', cls: 'danger solid' }]).then(v => v === 'ok');
+    return choose(msg, [{ value: 'ok', label: okLabel || t('ok'), cls: 'danger solid' }]).then(v => v === 'ok');
   }
 
   function esc(s) {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  // 英文用英國格式：Tue 29 Sep 2026
   function fmtDate(ms, withYear) {
     const d = new Date(ms);
+    if (lang === 'en') return WD_EN[d.getDay()] + ' ' + d.getDate() + ' ' + MON_EN[d.getMonth()] + (withYear ? ' ' + d.getFullYear() : '');
     return (withYear ? d.getFullYear() + '年' : '') + (d.getMonth() + 1) + '月' + d.getDate() + '日（' + WD[d.getDay()] + '）';
+  }
+
+  // 「9月29日」／「29 Sep」
+  function fmtDay(ms) {
+    const d = new Date(ms);
+    return lang === 'en' ? d.getDate() + ' ' + MON_EN[d.getMonth()] : (d.getMonth() + 1) + '月' + d.getDate() + '日';
+  }
+
+  // 「2026年9月」／「September 2026」
+  function fmtMonth(ms) {
+    const d = new Date(ms);
+    return lang === 'en' ? MONTH_EN[d.getMonth()] + ' ' + d.getFullYear() : d.getFullYear() + '年' + (d.getMonth() + 1) + '月';
   }
 
   function toDateInput(ms) { return C.dayKey(ms); }
@@ -532,6 +673,36 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     else root.setAttribute('data-theme', state.theme);
     document.querySelectorAll('[data-theme-opt]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.themeOpt === state.theme)));
   }
+
+  // ---------- 語言 ----------
+  const staticEls = Array.from(document.querySelectorAll('[data-i18n]')).map(el => ({ el, key: el.dataset.i18n, zh: el.innerHTML }));
+  const staticAttrs = Array.from(document.querySelectorAll('[data-i18n-attr]')).map(el => {
+    const [attr, key] = el.dataset.i18nAttr.split(':');
+    return { el, attr, key, zh: el.getAttribute(attr) };
+  });
+  const TITLE_ZH = document.title;
+
+  // 未揀過就跟瀏覽器：中文瀏覽器用中文，其他用英文
+  function applyLang() {
+    lang = state.lang || (/^zh/i.test(navigator.language || '') ? 'zh' : 'en');
+    C.setLang(lang);
+    document.documentElement.lang = lang === 'en' ? 'en-GB' : 'zh-Hant';
+    document.title = lang === 'en' ? 'Punch Clock' : TITLE_ZH;
+    staticEls.forEach(x => { x.el.innerHTML = lang === 'en' ? STATIC_EN[x.key] : x.zh; });
+    staticAttrs.forEach(x => x.el.setAttribute(x.attr, lang === 'en' ? STATIC_EN[x.key] : x.zh));
+    document.querySelectorAll('[data-lang-opt]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.langOpt === lang)));
+    const q = $('langQuick');
+    q.textContent = lang === 'en' ? '中' : 'EN';
+    q.setAttribute('aria-label', lang === 'en' ? '中文' : 'English');
+    q.lang = lang === 'en' ? 'zh-Hant' : 'en';
+    // 啲掣同今日列表有快取，要清咗先會用新語言重畫
+    delete $('actions').dataset.state;
+    delete $('todayList').dataset.sig;
+  }
+
+  function setLang(l) { state.lang = l; save(); applyLang(); render(); }
+  document.querySelectorAll('[data-lang-opt]').forEach(b => b.addEventListener('click', () => setLang(b.dataset.langOpt)));
+  $('langQuick').onclick = () => setLang(lang === 'en' ? 'zh' : 'en');
 
   // ---------- 分頁 ----------
   let currentTab = 'punch';
@@ -571,13 +742,13 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
       if (chk !== 'ok') { confirmLongOut(s, now, chk, note); return; }
     }
     try {
-      if (kind === 'in') { state.shifts = C.clockIn(state.shifts, now, note); toast('已上班打卡 ' + C.fmtClock(now)); }
-      if (kind === 'bs') { state.shifts = C.breakStart(state.shifts, now); toast('開始休息 ' + C.fmtClock(now)); }
-      if (kind === 'be') { state.shifts = C.breakEnd(state.shifts, now); toast('休息結束 ' + C.fmtClock(now)); }
+      if (kind === 'in') { state.shifts = C.clockIn(state.shifts, now, note); toast(t('tIn', { t: C.fmtClock(now) })); }
+      if (kind === 'bs') { state.shifts = C.breakStart(state.shifts, now); toast(t('tBs', { t: C.fmtClock(now) })); }
+      if (kind === 'be') { state.shifts = C.breakEnd(state.shifts, now); toast(t('tBe', { t: C.fmtClock(now) })); }
       if (kind === 'out') {
         state.shifts = C.clockOut(state.shifts, now, note);
         const s = state.shifts.find(x => x.id === lastClosedId(now));
-        toast('已下班打卡 ' + C.fmtClock(now) + (s ? '，淨工時 ' + C.fmtDur(C.netMs(s, now)) : ''));
+        toast(t('tOut', { t: C.fmtClock(now) }) + (s ? t('tOutNet', { d: C.fmtDur(C.netMs(s, now)) }) : ''));
       }
       if (note && (kind === 'in' || kind === 'out')) $('noteInput').value = '';
       else if (note) {
@@ -591,11 +762,11 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
   }
 
   async function confirmLongOut(s, now, chk, note) {
-    const choices = [{ value: 'edit', label: '改返下班時間', cls: 'primary' }];
-    if (chk === 'confirm') choices.push({ value: 'now', label: '就係而家下班' });
-    const msg = '由 ' + fmtDate(s.start) + ' ' + C.fmtClock(s.start) + ' 開始。' +
-      (chk === 'edit' ? '一更最長 24 小時，要改返正確嘅下班時間先儲存到。' : '係咪忘記咗打卡？');
-    const v = await choose(msg, choices, '呢更已經 ' + C.fmtDur(now - s.start));
+    const choices = [{ value: 'edit', label: t('fixEnd'), cls: 'primary' }];
+    if (chk === 'confirm') choices.push({ value: 'now', label: t('outNow') });
+    const msg = t('startedAt', { date: fmtDate(s.start), time: C.fmtClock(s.start) }) +
+      (chk === 'edit' ? t('longEdit') : t('longConfirm'));
+    const v = await choose(msg, choices, t('longTitle', { d: C.fmtDur(now - s.start) }));
     if (v === 'now') act('out', now, true);
     else if (v === 'edit') {
       openEditor(s.id, { confirmEnd: true, note });
@@ -617,37 +788,37 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     const s = C.openShift(state.shifts);
     const pill = $('statusPill');
     pill.className = 'pill ' + st;
-    pill.textContent = st === 'off' ? '未上班' : st === 'working' ? '工作中' : '休息中';
+    pill.textContent = st === 'off' ? t('stOff') : st === 'working' ? t('stWorking') : t('stBreak');
 
     const actions = $('actions');
     const want = st;
     if (actions.dataset.state !== want) {
       actions.dataset.state = want;
       actions.className = 'actions' + (st === 'working' ? ' two' : '');
-      if (st === 'off') actions.innerHTML = '<button class="big-btn in" data-act="in">上班打卡</button>';
-      if (st === 'working') actions.innerHTML = '<button class="big-btn brk" data-act="bs">開始休息</button><button class="big-btn out" data-act="out">下班打卡</button>';
-      if (st === 'break') actions.innerHTML = '<button class="big-btn brk" data-act="be">結束休息</button><button class="big-btn out" data-act="out" style="padding:14px;font-size:16px">直接下班</button>';
+      if (st === 'off') actions.innerHTML = '<button class="big-btn in" data-act="in">' + t('btnIn') + '</button>';
+      if (st === 'working') actions.innerHTML = '<button class="big-btn brk" data-act="bs">' + t('btnBs') + '</button><button class="big-btn out" data-act="out">' + t('btnOut') + '</button>';
+      if (st === 'break') actions.innerHTML = '<button class="big-btn brk" data-act="be">' + t('btnBe') + '</button><button class="big-btn out" data-act="out" style="padding:14px;font-size:16px">' + t('btnOutDirect') + '</button>';
     }
 
     if (!s) {
       $('timer').textContent = '0:00';
       const last = state.shifts.filter(x => x.end != null).sort((a, b) => b.end - a.end)[0];
-      $('timerSub').textContent = last ? '上次下班：' + fmtDate(last.end) + ' ' + C.fmtClock(last.end) : '撳下面個掣開始記錄';
+      $('timerSub').textContent = last ? t('lastOut', { when: fmtDate(last.end) + ' ' + C.fmtClock(last.end) }) : t('tapToStart');
     } else if (st === 'working') {
       $('timer').textContent = C.fmtDur(C.netMs(s, now));
       const brk = C.breakMs(s, now);
-      $('timerSub').textContent = C.fmtClock(s.start) + ' 上班' + (C.dayKey(s.start) !== C.dayKey(now) ? '（' + fmtDate(s.start) + '）' : '') + (brk ? ' · 已休息 ' + C.fmtDur(brk) : '');
+      $('timerSub').textContent = t('inAt', { t: C.fmtClock(s.start) }) + (C.dayKey(s.start) !== C.dayKey(now) ? t('inAtDay', { date: fmtDate(s.start) }) : '') + (brk ? t('brkSoFar', { d: C.fmtDur(brk) }) : '');
     } else {
       const b = C.openBreak(s);
       $('timer').textContent = C.fmtDur(now - b.start);
-      $('timerSub').textContent = '休息緊 · 今更淨工時 ' + C.fmtDur(C.netMs(s, now));
+      $('timerSub').textContent = t('onBreak', { d: C.fmtDur(C.netMs(s, now)) });
     }
 
     // 忘記下班提示
     const banner = $('forgotBanner');
     if (s && now - s.start > FORGOT_HOURS * C.HOUR) {
       banner.classList.remove('hidden');
-      $('forgotText').textContent = '由 ' + fmtDate(s.start) + ' ' + C.fmtClock(s.start) + ' 開始已經 ' + C.fmtDur(now - s.start) + '，係咪忘記咗下班打卡？可以改返正確嘅下班時間。';
+      $('forgotText').textContent = t('forgot', { date: fmtDate(s.start), time: C.fmtClock(s.start), d: C.fmtDur(now - s.start) });
       $('forgotFix').onclick = () => openEditor(s.id, { confirmEnd: true });
     } else banner.classList.add('hidden');
 
@@ -667,7 +838,7 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     const sig = today0 + JSON.stringify(todays); // 過咗午夜「計入邊日」會變，都要重畫
     if (list.dataset.sig !== sig) {
       list.dataset.sig = sig;
-      list.innerHTML = todays.length ? todays.map(x => shiftHTML(x, now, today0)).join('') : '<div class="empty small">今日未有記錄</div>';
+      list.innerHTML = todays.length ? todays.map(x => shiftHTML(x, now, today0)).join('') : '<div class="empty small">' + t('noToday') + '</div>';
     } else {
       todays.filter(x => x.end == null).forEach(x => {
         const el = list.querySelector('[data-edit="' + x.id + '"]');
@@ -681,21 +852,20 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
   }
 
   function shiftMetaHTML(s, now) {
-    return (s.breaks.length ? '休息 ' + C.fmtDur(C.breakMs(s, now)) + '（' + s.breaks.length + ' 次）' : '冇休息') +
+    return (s.breaks.length ? t('brkMeta', { d: C.fmtDur(C.breakMs(s, now)), n: s.breaks.length }) : t('noBrk')) +
       (s.note ? ' · ' + esc(s.note) : '');
   }
 
   // today0（可選）：今日記錄用。由之前開始嘅更唔計入今日總數（跨日班計入上班嗰日），要標明計入邊日
   function shiftHTML(s, now, today0) {
-    const endTxt = s.end == null ? '進行中' : C.fmtClock(s.end);
+    const endTxt = s.end == null ? t('live') : C.fmtClock(s.end);
     const crosses = s.end != null && C.dayKey(s.end) !== C.dayKey(s.start);
     const earlier = today0 != null && s.start < today0;
-    const d = new Date(s.start);
-    const tag = earlier ? '<span class="tag">計入 ' + (d.getMonth() + 1) + '月' + d.getDate() + '日</span>'
-      : crosses ? '<span class="tag">跨日</span>' : '';
+    const tag = earlier ? '<span class="tag">' + t('countsTo', { date: fmtDay(s.start) }) + '</span>'
+      : crosses ? '<span class="tag">' + t('overnight') + '</span>' : '';
     return '<button class="shift" data-edit="' + s.id + '">' +
       '<div><div class="times num">' + C.fmtClock(s.start) + ' – ' + endTxt +
-      tag + (s.end == null ? '<span class="tag live">進行中</span>' : '') + '</div>' +
+      tag + (s.end == null ? '<span class="tag live">' + t('live') + '</span>' : '') + '</div>' +
       '<div class="meta">' + shiftMetaHTML(s, now) + '</div></div>' +
       '<div class="net num">' + C.fmtDur(C.netMs(s, now)) + '</div></button>';
   }
@@ -713,13 +883,12 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
   $('logNext').onclick = () => { logMonth = C.addMonths(logMonth, 1); render(); };
 
   function renderLog(now) {
-    const d = new Date(logMonth);
-    $('logMonthLbl').textContent = d.getFullYear() + '年' + (d.getMonth() + 1) + '月';
+    $('logMonthLbl').textContent = fmtMonth(logMonth);
     const end = C.addMonths(logMonth, 1);
     const list = C.shiftsInRange(state.shifts, logMonth, end).sort((a, b) => b.start - a.start);
     const sum = C.summarize(state.shifts, logMonth, end, now);
-    $('logSummary').textContent = sum.count ? sum.days + ' 日 · ' + sum.count + ' 更 · 淨工時 ' + C.fmtDur(sum.net) : '';
-    if (!list.length) { $('logList').innerHTML = '<div class="empty">呢個月未有記錄<br><span class="small">可以撳「補打卡」手動加</span></div>'; return; }
+    $('logSummary').textContent = sum.count ? t('logSum', { days: sum.days, count: sum.count, d: C.fmtDur(sum.net) }) : '';
+    if (!list.length) { $('logList').innerHTML = '<div class="empty">' + t('logEmpty') + '</div>'; return; }
     const groups = new Map();
     list.forEach(s => { const k = C.dayKey(s.start); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(s); });
     let html = '';
@@ -747,13 +916,14 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     if (stRange === 'week') {
       from = C.startOfWeek(stAnchor); to = C.addDays(from, 7); nDays = 7;
       const a = new Date(from), b = new Date(C.addDays(from, 6));
-      label = (a.getMonth() + 1) + '/' + a.getDate() + ' – ' + (b.getMonth() + 1) + '/' + b.getDate();
-      if (from === C.startOfWeek(now)) label += '（本週）';
+      // 英文用英國次序：日/月
+      const md = x => lang === 'en' ? x.getDate() + '/' + (x.getMonth() + 1) : (x.getMonth() + 1) + '/' + x.getDate();
+      label = md(a) + ' – ' + md(b);
+      if (from === C.startOfWeek(now)) label += t('thisWeekTag');
     } else {
       from = C.startOfMonth(stAnchor); to = C.addMonths(from, 1);
       nDays = Math.round((to - from) / C.DAY);
-      const a = new Date(from);
-      label = a.getFullYear() + '年' + (a.getMonth() + 1) + '月';
+      label = fmtMonth(from);
     }
     $('stLbl').textContent = label;
     const sum = C.summarize(state.shifts, from, to, now);
@@ -762,7 +932,7 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     $('stAvg').textContent = C.fmtDur(sum.days ? sum.net / sum.days : 0);
     $('stGross').textContent = C.fmtDur(sum.gross);
     $('stBreak').textContent = C.fmtDur(sum.brk);
-    $('stDec').textContent = C.hoursDecimal(sum.net) + ' 小時';
+    $('stDec').textContent = t('hours', { n: C.hoursDecimal(sum.net) });
 
     const days = C.dailyTotals(state.shifts, from, nDays, now);
     const max = Math.max(C.HOUR * 8, ...days.map(d => d.net));
@@ -771,9 +941,9 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     $('stBars').innerHTML = days.map((d, i) => {
       const dt = new Date(d.day);
       const h = Math.round(d.net / max * 100);
-      const lbl = stRange === 'week' ? WD[dt.getDay()] : ((i === 0 || (i + 1) % 5 === 0) ? String(dt.getDate()) : '');
+      const lbl = stRange === 'week' ? (lang === 'en' ? WD_EN : WD)[dt.getDay()] : ((i === 0 || (i + 1) % 5 === 0) ? String(dt.getDate()) : '');
       const val = stRange === 'week' && d.net ? C.fmtDur(d.net) : '';
-      return '<div class="bar-col' + (C.dayKey(d.day) === todayKey ? ' today' : '') + '" title="' + (dt.getMonth() + 1) + '/' + dt.getDate() + ' ' + C.fmtDur(d.net) + '">' +
+      return '<div class="bar-col' + (C.dayKey(d.day) === todayKey ? ' today' : '') + '" title="' + fmtDay(d.day) + ' ' + C.fmtDur(d.net) + '">' +
         (val ? '<div class="bar-val num">' + val + '</div>' : '') +
         '<div class="bar' + (d.net ? '' : ' zero') + '" style="height:' + Math.max(h, 1) + '%"></div>' +
         '<div class="bar-lbl">' + (lbl || '&nbsp;') + '</div></div>';
@@ -786,15 +956,12 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     const prev = sel.value;
     const months = new Set(state.shifts.map(s => C.startOfMonth(s.start)));
     months.add(C.startOfMonth(Date.now()));
-    const opts = ['<option value="all">全部記錄（' + state.shifts.length + ' 更）</option>'].concat(
-      Array.from(months).sort((a, b) => b - a).map(m => {
-        const d = new Date(m);
-        return '<option value="' + m + '">' + d.getFullYear() + '年' + (d.getMonth() + 1) + '月</option>';
-      }));
+    const opts = ['<option value="all">' + t('allRecords', { n: state.shifts.length }) + '</option>'].concat(
+      Array.from(months).sort((a, b) => b - a).map(m => '<option value="' + m + '">' + fmtMonth(m) + '</option>'));
     sel.innerHTML = opts.join('');
     sel.value = prev && Array.from(sel.options).some(o => o.value === prev) ? prev : String(C.startOfMonth(Date.now()));
-    $('lastBackup').textContent = state.lastBackup ? '上次備份：' + fmtDate(state.lastBackup, true) + ' ' + C.fmtClock(state.lastBackup) : '仲未備份過';
-    $('storageInfo').textContent = '共 ' + state.shifts.length + ' 更記錄 · 只儲存喺呢部裝置';
+    $('lastBackup').textContent = state.lastBackup ? t('lastBackup', { when: fmtDate(state.lastBackup, true) + ' ' + C.fmtClock(state.lastBackup) }) : t('neverBackup');
+    $('storageInfo').textContent = t('storageInfo', { n: state.shifts.length });
   }
 
   function download(name, text, type) {
@@ -809,21 +976,21 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
   $('exportCsv').onclick = () => {
     const v = $('exportRange').value;
     const now = Date.now();
-    let list = state.shifts, name = '打卡記錄_全部.csv';
+    let list = state.shifts, name = t('fileAll');
     if (v !== 'all') {
       const m = Number(v);
       list = C.shiftsInRange(state.shifts, m, C.addMonths(m, 1));
       const d = new Date(m);
-      name = '打卡記錄_' + d.getFullYear() + '-' + C.pad(d.getMonth() + 1) + '.csv';
+      name = t('fileMonth', { m: d.getFullYear() + '-' + C.pad(d.getMonth() + 1) });
     }
-    if (!list.length) { toast('呢個範圍冇記錄'); return; }
+    if (!list.length) { toast(t('noneInRange')); return; }
     download(name, C.toCSV(list, now), 'text/csv;charset=utf-8');
-    toast('已匯出 ' + list.length + ' 更');
+    toast(t('exported', { n: list.length }));
   };
 
   $('backupBtn').onclick = () => {
     const now = Date.now();
-    download('打卡備份_' + C.dayKey(now) + '.json', JSON.stringify({ app: 'punchclock', version: 1, exportedAt: now, shifts: state.shifts }, null, 2), 'application/json');
+    download(t('fileBackup', { d: C.dayKey(now) }), JSON.stringify({ app: 'punchclock', version: 1, exportedAt: now, shifts: state.shifts }, null, 2), 'application/json');
     state.lastBackup = now; save(); render();
   };
   $('restoreBtn').onclick = () => $('restoreFile').click();
@@ -833,40 +1000,39 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     if (!f) return;
     try {
       const shifts = C.normalizeImport(JSON.parse(await f.text()));
-      if (!await ask('還原會用備份入面嘅 ' + shifts.length + ' 更記錄，取代而家嘅 ' + state.shifts.length + ' 更。確定？', '還原')) return;
+      if (!await ask(t('restoreAsk', { a: shifts.length, b: state.shifts.length }), t('restore'))) return;
       clearIssue(); // 用家明確揀咗用備份取代
       state.shifts = shifts; save(); render();
-      toast('已還原 ' + shifts.length + ' 更');
-    } catch (err) { toast('還原失敗：' + err.message); }
+      toast(t('restored', { n: shifts.length }));
+    } catch (err) { toast(t('restoreFail', { e: err.message })); }
   };
   $('wipeBtn').onclick = async () => {
-    if (!state.shifts.length) { toast('冇記錄'); return; }
-    if (!await ask('確定刪除全部 ' + state.shifts.length + ' 更記錄？無法復原。', '全部刪除')) return;
+    if (!state.shifts.length) { toast(t('noRecords')); return; }
+    if (!await ask(t('wipeAsk', { n: state.shifts.length }), t('wipeAll'))) return;
     clearIssue();
-    state.shifts = []; save(); render(); toast('已刪除全部記錄');
+    state.shifts = []; save(); render(); toast(t('wiped'));
   };
 
   $('dataDownload').onclick = () => {
-    if (issue && issue.raw != null) download('打卡原始資料_' + C.dayKey(Date.now()) + '.json', issue.raw, 'application/json');
+    if (issue && issue.raw != null) download(t('fileRaw', { d: C.dayKey(Date.now()) }), issue.raw, 'application/json');
   };
   $('dataAccept').onclick = async () => {
     if (!issue) return;
-    const msg = (issue.copied ? '' : '⚠️ 原始資料另存失敗，繼續嘅話會被覆蓋，建議先下載原始資料。') +
-      '確認之後，會用畫面上而家嘅 ' + state.shifts.length + ' 更記錄覆蓋儲存咗嘅資料。繼續？';
-    if (!await ask(msg, '繼續')) return;
+    const msg = (issue.copied ? '' : t('rawCopyFail')) + t('acceptAsk', { n: state.shifts.length });
+    if (!await ask(msg, t('cont'))) return;
     clearIssue(); save(); render();
-    toast('已儲存 ' + state.shifts.length + ' 更');
+    toast(t('savedN', { n: state.shifts.length }));
   };
 
   function renderDataBanner() {
     $('dataBanner').classList.toggle('hidden', !issue);
     if (!issue) return;
     let txt;
-    if (issue.keptMemory) txt = '儲存咗嘅資料出咗問題，畫面繼續顯示之前載入咗嘅記錄。';
-    else if (issue.ok) txt = '有 ' + issue.skipped + ' 更記錄格式唔啱，已經略過，其餘 ' + issue.loaded + ' 更正常載入。';
-    else txt = '讀唔到儲存咗嘅記錄，資料可能已經損壞。';
-    txt += issue.copied ? '原始資料已經另存一份。' : '原始資料另存失敗，請先下載原始資料。';
-    $('dataText').textContent = txt + '你確認之前，任何改動都唔會儲存。';
+    if (issue.keptMemory) txt = t('issueMem');
+    else if (issue.ok) txt = t('issueSkip', { s: issue.skipped, l: issue.loaded });
+    else txt = t('issueBad');
+    txt += issue.copied ? t('issueCopied') : t('issueNotCopied');
+    $('dataText').textContent = txt + t('issueWait');
   }
   document.querySelectorAll('[data-theme-opt]').forEach(b => b.addEventListener('click', () => {
     state.theme = b.dataset.themeOpt; save(); applyTheme();
@@ -908,7 +1074,7 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
       editing = { id: C.uid(), start: start.getTime(), end: end.getTime(), breaks: [{ start: new Date(start).setHours(13, 0, 0, 0), end: new Date(start).setHours(14, 0, 0, 0) }], note: '' };
       isNew = true;
     }
-    $('editTitle').textContent = isNew ? '補打卡' : requireEnd ? '確認下班時間' : '修改記錄';
+    $('editTitle').textContent = isNew ? t('titleAdd') : requireEnd ? t('titleConfirm') : t('titleEdit');
     $('eDelete').classList.toggle('hidden', isNew);
     $('eStartD').value = toDateInput(editing.start);
     $('eStartT').value = toTimeInput(editing.start);
@@ -928,11 +1094,11 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     const maxD = C.dayKey(Date.now());
     $('eBreaks').innerHTML = editing.breaks.map((b, i) =>
       '<div class="break-item" data-bi="' + i + '">' +
-      '<div class="row spread small muted"><span>休息 ' + (i + 1) + '</span><button type="button" class="btn ghost" data-rmb="' + i + '" style="color:var(--danger)">移除</button></div>' +
+      '<div class="row spread small muted"><span>' + t('brkN', { n: i + 1 }) + '</span><button type="button" class="btn ghost" data-rmb="' + i + '" style="color:var(--danger)">' + t('remove') + '</button></div>' +
       '<div class="dt" style="margin-top:4px"><input type="date" data-f="sd" max="' + maxD + '" value="' + toDateInput(b.start) + '"><input type="time" data-f="st" value="' + toTimeInput(b.start) + '"></div>' +
-      '<div class="small muted" style="margin:6px 0 4px">至 <span>（留空 = 仲休息緊）</span></div>' +
+      '<div class="small muted" style="margin:6px 0 4px">' + t('to') + ' <span>' + t('brkBlank') + '</span></div>' +
       '<div class="dt"><input type="date" data-f="ed" max="' + maxD + '" value="' + (b.end == null ? '' : toDateInput(b.end)) + '"><input type="time" data-f="et" value="' + (b.end == null ? '' : toTimeInput(b.end)) + '"></div>' +
-      '</div>').join('') || '<div class="muted small" style="padding:6px 0">冇休息記錄</div>';
+      '</div>').join('') || '<div class="muted small" style="padding:6px 0">' + t('noBrkRec') + '</div>';
   }
 
   function readEditor() {
@@ -950,8 +1116,8 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     if (autoEndDate) s.end = C.addDays(s.end, 1);
     if (s.end != null && (autoEndDate || wasAuto)) $('eEndD').value = toDateInput(s.end);
     // 日期自動轉咗就喺下面講一聲，唔好靜靜雞改；提示留住，直到日期再變或者用家自己改日期
-    if (autoEndDate) endHint = '下班時間早過上班，已自動當係翌日（' + fmtDate(s.end) + '）';
-    else if (wasAuto && s.end != null) endHint = '下班日期已改返同上班同一日（' + fmtDate(s.end) + '）';
+    if (autoEndDate) endHint = t('hintNextDay', { date: fmtDate(s.end) });
+    else if (wasAuto && s.end != null) endHint = t('hintSameDay', { date: fmtDate(s.end) });
     if (endHint && s.end != null && (autoEndDate || wasAuto)) endHintDay = toDateInput(s.end);
     // 日期框已經唔係提示講嗰日（例如用家自己揀咗第二日），提示就唔啱，收埋
     if (s.end == null || $('eEndD').value !== endHintDay) endHint = '';
@@ -967,8 +1133,8 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     }).filter(b => b.start != null);
     s.note = $('eNote').value.trim();
     const now = Date.now();
-    const errs = s.start ? C.validateShift(s, state.shifts, now) : ['請輸入上班時間'];
-    if (requireEnd && s.end == null) errs.unshift('請輸入下班時間');
+    const errs = s.start ? C.validateShift(s, state.shifts, now) : [C.msg('needStart')];
+    if (requireEnd && s.end == null) errs.unshift(t('needEnd'));
     $('eErrors').innerHTML = errs.map(esc).join('<br>');
     // 遲過而家嘅時間：日期同時間框一齊標紅
     const mark = (ms, dEl, tEl) => { const bad = ms != null && ms > now; dEl.classList.toggle('invalid', bad); tEl.classList.toggle('invalid', bad); };
@@ -981,7 +1147,7 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
       mark(bs, q('sd'), q('st'));
       mark(be, q('ed'), q('et'));
     });
-    $('eCalc').textContent = s.start ? '總時間 ' + C.fmtDur(C.grossMs(s, now)) + ' − 休息 ' + C.fmtDur(C.breakMs(s, now)) + ' = 淨工時 ' + C.fmtDur(C.netMs(s, now)) : '';
+    $('eCalc').textContent = s.start ? t('calc', { g: C.fmtDur(C.grossMs(s, now)), b: C.fmtDur(C.breakMs(s, now)), n: C.fmtDur(C.netMs(s, now)) }) : '';
     $('eSave').disabled = errs.length > 0;
     return errs;
   }
@@ -1009,9 +1175,9 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     });
     // 跟住移咗嘅日期要講一聲，唔好靜靜雞改
     const what = [];
-    if (endMoved) what.push('下班');
-    if (breaksMoved) what.push(breaksMoved === 1 ? '休息' : breaksMoved + ' 段休息');
-    const hint = what.length ? what.join('同') + '日期已跟住一齊移' + (delta > 0 ? '後 ' : '前 ') + Math.abs(delta) + ' 日' : '';
+    if (endMoved) what.push(t('movedEnd'));
+    if (breaksMoved) what.push(t('movedBrk', { n: breaksMoved }));
+    const hint = what.length ? t('moved', { what: what.join(t('and')), later: delta > 0, n: Math.abs(delta) }) : '';
     $('eStartHint').textContent = hint;
     $('eStartHint').classList.toggle('hidden', !hint);
   });
@@ -1046,9 +1212,9 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
   });
   $('editClose').onclick = () => dlg.close();
   $('eDelete').onclick = async () => {
-    if (!await ask('刪除呢更記錄？', '刪除')) return;
+    if (!await ask(t('delAsk'), t('del'))) return;
     state.shifts = state.shifts.filter(x => x.id !== editing.id);
-    save(); dlg.close(); render(); toast('已刪除');
+    save(); dlg.close(); render(); toast(t('deleted'));
   };
   $('editForm').addEventListener('submit', e => {
     e.preventDefault();
@@ -1057,7 +1223,7 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     const i = state.shifts.findIndex(x => x.id === editing.id);
     if (i >= 0) state.shifts[i] = editing; else state.shifts.push(editing);
     save(); dlg.close(); render();
-    toast(isNew ? '已補打卡' : '已儲存');
+    toast(isNew ? t('added') : t('saved'));
   });
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
   $('addShift').onclick = () => openEditor(null);
@@ -1073,6 +1239,7 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
   }
 
   applyTheme();
+  applyLang();
   render();
   setInterval(() => { if (currentTab === 'punch' && !dlg.open) render(); }, 1000);
   // 由背景返嚟時重新讀；讀唔到就繼續用記憶體入面嘅資料，唔好換成空白
@@ -1081,6 +1248,7 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
     const r = readStorage();
     if (hasIssue(r)) { if (!saveBlocked) flagIssue(r, true); }
     else if (!saveBlocked) state = r.state;
+    applyLang();
     render();
   });
 

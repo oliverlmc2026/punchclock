@@ -1,0 +1,1042 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>打卡記錄</title>
+<meta name="description" content="個人上下班打卡同工時統計">
+<meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181b" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="打卡">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root {
+  --bg: #f6f4ef;
+  --surface: #ffffff;
+  --surface-2: #efece5;
+  --text: #1d1f22;
+  --muted: #6b6f76;
+  --line: #e2ded5;
+  --work: #1f7a5c;
+  --work-soft: #dcefe6;
+  --break: #b7791f;
+  --break-soft: #f6ead3;
+  --off: #5b6470;
+  --danger: #b4382f;
+  --accent: #1f7a5c;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.05);
+  --radius: 18px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16181b; --surface: #1f2226; --surface-2: #2a2e33; --text: #eceae4; --muted: #9aa0a8;
+    --line: #33383e; --work: #4cc59a; --work-soft: #183a2f; --break: #e6a948; --break-soft: #3d3020;
+    --off: #9aa3ad; --danger: #ef6b61; --accent: #4cc59a; --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #16181b; --surface: #1f2226; --surface-2: #2a2e33; --text: #eceae4; --muted: #9aa0a8;
+  --line: #33383e; --work: #4cc59a; --work-soft: #183a2f; --break: #e6a948; --break-soft: #3d3020;
+  --off: #9aa3ad; --danger: #ef6b61; --accent: #4cc59a; --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+  font-size: 16px; line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
+}
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+main { max-width: 560px; margin: 0 auto; padding: calc(12px + env(safe-area-inset-top)) 16px 16px; }
+h1 { font-size: 20px; margin: 4px 0 16px; letter-spacing: .02em; }
+h2 { font-size: 15px; color: var(--muted); font-weight: 600; margin: 24px 0 8px; }
+.card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; border: 1px solid var(--line); }
+.row { display: flex; align-items: center; gap: 8px; }
+.spread { justify-content: space-between; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.hidden { display: none !important; }
+
+/* 打卡頁 */
+.clock-now { text-align: center; margin: 8px 0 4px; }
+.clock-now .time { font-size: 44px; font-weight: 700; letter-spacing: .02em; }
+.clock-now .date { color: var(--muted); }
+.status-card { text-align: center; padding: 24px 16px; margin-top: 12px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-weight: 600; font-size: 14px; }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.pill.off { background: var(--surface-2); color: var(--off); }
+.pill.working { background: var(--work-soft); color: var(--work); }
+.pill.break { background: var(--break-soft); color: var(--break); }
+.timer { font-size: 52px; font-weight: 700; margin: 12px 0 2px; }
+.timer-sub { color: var(--muted); font-size: 14px; min-height: 20px; }
+.actions { display: grid; gap: 12px; margin-top: 20px; }
+.actions.two { grid-template-columns: 1fr 1fr; }
+.big-btn {
+  appearance: none; border: 0; border-radius: 16px; padding: 22px 12px; font-size: 20px; font-weight: 700;
+  color: #fff; cursor: pointer; font-family: inherit; transition: transform .08s ease, filter .15s;
+}
+.big-btn:active { transform: scale(.97); }
+.big-btn.in { background: var(--work); }
+.big-btn.out { background: var(--off); }
+.big-btn.brk { background: var(--break); }
+/* 深色模式啲掣底色偏淺，要用深色字先夠對比 */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .big-btn { color: #111; } }
+:root[data-theme="dark"] .big-btn { color: #111; }
+.note-input { width: 100%; margin-top: 14px; }
+.banner { background: var(--break-soft); color: var(--text); border: 1px solid var(--break); border-radius: 14px; padding: 12px 14px; margin-top: 12px; font-size: 14px; }
+.banner button { margin-top: 8px; }
+.today-list { margin-top: 8px; }
+.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; box-shadow: var(--shadow); }
+.stat .lbl { font-size: 12px; color: var(--muted); }
+.stat .val { font-size: 22px; font-weight: 700; margin-top: 2px; }
+
+/* 表單元件 */
+input, textarea, select {
+  font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 10px 12px; min-height: 44px; width: 100%;
+}
+input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn {
+  appearance: none; font: inherit; font-weight: 600; border-radius: 10px; padding: 10px 14px; min-height: 44px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+:root[data-theme="dark"] .btn.primary { color: #111; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { color: #111; } }
+.btn.danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--accent); }
+.btn.block { width: 100%; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.icon-btn { min-width: 44px; padding: 10px; }
+
+/* 記錄列表 */
+.day-group { margin-top: 16px; }
+.day-head { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); padding: 0 4px 6px; }
+.shift {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; font: inherit; color: inherit;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; box-shadow: var(--shadow);
+}
+.shift .times { font-weight: 600; }
+.shift .meta { font-size: 13px; color: var(--muted); }
+.shift .net { margin-left: auto; font-weight: 700; font-size: 18px; }
+.tag { font-size: 11px; padding: 1px 6px; border-radius: 6px; background: var(--surface-2); color: var(--muted); margin-left: 4px; vertical-align: 1px; }
+.tag.live { background: var(--work-soft); color: var(--work); }
+.empty { text-align: center; color: var(--muted); padding: 40px 16px; }
+
+/* 統計 */
+.seg { display: flex; background: var(--surface-2); border-radius: 12px; padding: 4px; gap: 4px; }
+.seg button { flex: 1; appearance: none; border: 0; background: transparent; font: inherit; font-weight: 600; color: var(--muted); padding: 8px; border-radius: 9px; min-height: 40px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.period-nav { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 8px; }
+.period-nav .lbl { font-weight: 700; }
+.big-total { font-size: 40px; font-weight: 700; }
+.bars { display: flex; align-items: flex-end; gap: 6px; height: 150px; margin-top: 16px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+.bar { width: 100%; max-width: 34px; background: var(--work); border-radius: 6px 6px 3px 3px; min-height: 2px; }
+.bar.zero { background: var(--line); }
+.bar-val { font-size: 11px; color: var(--muted); margin-bottom: 4px; white-space: nowrap; }
+.bar-lbl { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.bar-col.today .bar-lbl { color: var(--text); font-weight: 700; }
+.kv { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.kv:last-child { border-bottom: 0; }
+
+/* 底部分頁 */
+nav.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line);
+  display: flex; justify-content: center; padding-bottom: env(safe-area-inset-bottom); z-index: 10;
+}
+nav.tabs .inner { display: flex; width: 100%; max-width: 560px; }
+nav.tabs button {
+  flex: 1; appearance: none; border: 0; background: transparent; font: inherit; font-size: 12px; color: var(--muted);
+  padding: 8px 0 10px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; min-height: 60px;
+}
+nav.tabs button svg { width: 24px; height: 24px; }
+nav.tabs button[aria-selected="true"] { color: var(--accent); font-weight: 700; }
+
+/* 編輯對話框 */
+dialog { border: 0; padding: 0; background: transparent; max-width: 100vw; width: 100%; max-height: 100dvh; }
+dialog::backdrop { background: rgba(0,0,0,.4); }
+.sheet {
+  background: var(--surface); color: var(--text); width: 100%; max-width: 560px; margin: 0 auto;
+  border-radius: 20px; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); max-height: 92dvh; overflow-y: auto;
+}
+.field { margin-top: 12px; }
+.field > label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.dt { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; }
+.break-item { border: 1px solid var(--line); border-radius: 12px; padding: 10px; margin-top: 8px; }
+.hint { color: var(--accent); font-size: 13px; margin-top: 6px; }
+input.auto, input.moved { border-color: var(--accent); }
+.errors { color: var(--danger); font-size: 14px; margin-top: 12px; }
+.errors:empty { display: none; }
+input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); outline-offset: -1px; }
+.sheet-actions { display: flex; gap: 8px; margin-top: 18px; }
+.sheet-actions .btn { flex: 1; }
+/* 確認對話框（代替 confirm()，因為有啲環境會靜靜雞當撳咗取消） */
+#confirmDlg .sheet { max-width: 360px; }
+#confirmMsg { margin: 4px 0 0; }
+#confirmTitle { margin: 0 0 4px; font-size: 20px; }
+.sheet-actions.stack { flex-direction: column; }
+.btn.danger.solid { background: var(--danger); color: #fff; }
+:root[data-theme="dark"] .btn.danger.solid { color: #111; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.danger.solid { color: #111; } }
+.toast {
+  position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px);
+  background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 14px; opacity: 0;
+  transition: opacity .2s, transform .2s; pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.settings .card + .card { margin-top: 12px; }
+.settings p { margin: 6px 0 12px; }
+.btn-stack { display: grid; gap: 8px; }
+@media (max-width: 360px) {
+  .timer { font-size: 42px; }
+  .clock-now .time { font-size: 36px; }
+  .stat .val { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <!-- 讀資料出問題（每個分頁都見到） -->
+  <div id="dataBanner" class="banner hidden" role="alert" style="margin:0 0 12px">
+    <div id="dataText"></div>
+    <div class="row" style="flex-wrap:wrap">
+      <button class="btn" id="dataDownload">下載原始資料</button>
+      <button class="btn primary" id="dataAccept">確認，繼續使用</button>
+    </div>
+  </div>
+
+  <!-- 打卡 -->
+  <section id="view-punch" data-view>
+    <div class="clock-now">
+      <div class="time num" id="nowTime">--:--</div>
+      <div class="date" id="nowDate"></div>
+    </div>
+
+    <div id="forgotBanner" class="banner hidden">
+      <div id="forgotText"></div>
+      <button class="btn" id="forgotFix">修改呢更</button>
+    </div>
+
+    <div class="card status-card">
+      <span id="statusPill" class="pill off">未上班</span>
+      <div class="timer num" id="timer">0:00</div>
+      <div class="timer-sub num" id="timerSub"></div>
+      <div id="actions" class="actions"></div>
+      <input id="noteInput" class="note-input" type="text" maxlength="200" placeholder="備註（可選），會跟今次打卡一齊儲存">
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><div class="lbl">今日</div><div class="val num" id="sToday">0:00</div></div>
+      <div class="stat"><div class="lbl">本週</div><div class="val num" id="sWeek">0:00</div></div>
+      <div class="stat"><div class="lbl">本月</div><div class="val num" id="sMonth">0:00</div></div>
+    </div>
+
+    <h2>今日記錄</h2>
+    <div id="todayList" class="today-list"></div>
+  </section>
+
+  <!-- 記錄 -->
+  <section id="view-log" data-view class="hidden">
+    <div class="row spread">
+      <h1>記錄</h1>
+      <button class="btn primary" id="addShift">＋ 補打卡</button>
+    </div>
+    <div class="period-nav">
+      <button class="btn icon-btn" id="logPrev" aria-label="上個月">‹</button>
+      <div class="lbl num" id="logMonthLbl"></div>
+      <button class="btn icon-btn" id="logNext" aria-label="下個月">›</button>
+    </div>
+    <div class="muted small" id="logSummary"></div>
+    <div id="logList"></div>
+  </section>
+
+  <!-- 統計 -->
+  <section id="view-stats" data-view class="hidden">
+    <h1>統計</h1>
+    <div class="seg" role="group" aria-label="統計範圍">
+      <button data-range="week" aria-pressed="true">週</button>
+      <button data-range="month" aria-pressed="false">月</button>
+    </div>
+    <div class="period-nav">
+      <button class="btn icon-btn" id="stPrev" aria-label="上一段">‹</button>
+      <div class="lbl num" id="stLbl"></div>
+      <button class="btn icon-btn" id="stNext" aria-label="下一段">›</button>
+    </div>
+    <div class="card">
+      <div class="muted small">淨工時</div>
+      <div class="big-total num" id="stTotal">0:00</div>
+      <div class="bars" id="stBars"></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="kv"><span>工作日數</span><span class="num" id="stDays">0</span></div>
+      <div class="kv"><span>每日平均淨工時</span><span class="num" id="stAvg">0:00</span></div>
+      <div class="kv"><span>總時間（含休息）</span><span class="num" id="stGross">0:00</span></div>
+      <div class="kv"><span>休息總時間</span><span class="num" id="stBreak">0:00</span></div>
+      <div class="kv"><span>小數顯示</span><span class="num" id="stDec">0.00 小時</span></div>
+    </div>
+  </section>
+
+  <!-- 設定 -->
+  <section id="view-settings" data-view class="hidden settings">
+    <h1>匯出同設定</h1>
+    <div class="card">
+      <strong>匯出 CSV</strong>
+      <p class="muted small">每更一行，Excel / Numbers / Google Sheets 都開到。</p>
+      <div class="field">
+        <label for="exportRange">範圍</label>
+        <select id="exportRange"></select>
+      </div>
+      <button class="btn primary block" id="exportCsv" style="margin-top:12px">下載 CSV</button>
+    </div>
+    <div class="card">
+      <strong>備份同還原</strong>
+      <p class="muted small">資料只儲存喺呢部裝置嘅瀏覽器入面。清除瀏覽器資料或者換手機前，記得先備份。</p>
+      <div class="btn-stack">
+        <button class="btn" id="backupBtn">下載備份（JSON）</button>
+        <button class="btn" id="restoreBtn">由備份還原…</button>
+        <input type="file" id="restoreFile" accept="application/json,.json" class="hidden">
+      </div>
+      <p class="muted small" id="lastBackup"></p>
+    </div>
+    <div class="card">
+      <strong>外觀</strong>
+      <div class="seg" role="group" aria-label="主題" style="margin-top:10px">
+        <button data-theme-opt="auto">跟系統</button>
+        <button data-theme-opt="light">淺色</button>
+        <button data-theme-opt="dark">深色</button>
+      </div>
+    </div>
+    <div class="card">
+      <strong>危險區</strong>
+      <p class="muted small">刪除全部記錄，無法復原。</p>
+      <button class="btn danger block" id="wipeBtn">刪除全部記錄</button>
+    </div>
+    <p class="muted small" style="text-align:center;margin-top:20px" id="storageInfo"></p>
+  </section>
+</main>
+
+<nav class="tabs" role="tablist">
+  <div class="inner">
+    <button role="tab" data-tab="punch" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>打卡
+    </button>
+    <button role="tab" data-tab="log" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>記錄
+    </button>
+    <button role="tab" data-tab="stats" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>統計
+    </button>
+    <button role="tab" data-tab="settings" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>匯出
+    </button>
+  </div>
+</nav>
+
+<!-- 編輯 / 補打卡 -->
+<dialog id="editDlg">
+  <form class="sheet" id="editForm" method="dialog" novalidate>
+    <div class="row spread">
+      <strong id="editTitle">修改記錄</strong>
+      <button type="button" class="btn ghost" id="editClose">取消</button>
+    </div>
+    <div class="muted small">所有時間都唔可以遲過而家</div>
+    <div class="field">
+      <label>上班</label>
+      <div class="dt"><input type="date" id="eStartD" required><input type="time" id="eStartT" required></div>
+      <div class="hint hidden" id="eStartHint" role="status" aria-live="polite"></div>
+    </div>
+    <div class="field">
+      <label>下班 <span class="muted small">（留空 = 仲未下班）</span></label>
+      <div class="dt"><input type="date" id="eEndD"><input type="time" id="eEndT"></div>
+      <div class="hint hidden" id="eEndHint" role="status" aria-live="polite"></div>
+    </div>
+    <div class="field">
+      <div class="row spread"><label style="margin:0">休息</label><button type="button" class="btn ghost" id="eAddBreak">＋ 加休息</button></div>
+      <div id="eBreaks"></div>
+    </div>
+    <div class="field">
+      <label for="eNote">備註</label>
+      <textarea id="eNote" rows="2" maxlength="200"></textarea>
+    </div>
+    <div class="muted small" id="eCalc" style="margin-top:10px"></div>
+    <div class="errors" id="eErrors"></div>
+    <div class="sheet-actions">
+      <button type="button" class="btn danger" id="eDelete">刪除</button>
+      <button type="submit" class="btn primary" id="eSave">儲存</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 確認 -->
+<dialog id="confirmDlg">
+  <form class="sheet" method="dialog">
+    <h2 id="confirmTitle" class="hidden"></h2>
+    <p id="confirmMsg"></p>
+    <div class="sheet-actions" id="confirmActions"></div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="core.js"></script>
+<script>
+(function () {
+  'use strict';
+  const C = window.Core;
+  const KEY = 'punchclock.v1';
+  const $ = id => document.getElementById(id);
+  const WD = ['日', '一', '二', '三', '四', '五', '六'];
+  const FORGOT_HOURS = 14;
+
+  // ---------- 儲存 ----------
+  const CORRUPT_PREFIX = KEY + '.corrupt.';
+  let saveBlocked = false; // 讀資料出問題時暫停寫入，等用家確認先再寫
+  let issue = null;        // { ok, skipped, loaded, copied, keptMemory, raw }
+  let state = initialLoad();
+
+  function readStorage() {
+    let raw = null;
+    try { raw = localStorage.getItem(KEY); } catch (e) { console.warn('storage unavailable', e); }
+    return Object.assign(C.parseStored(raw), { raw });
+  }
+
+  function hasIssue(r) { return !r.ok || r.skipped > 0; }
+
+  // 先將原始資料另存去另一個 key，再暫停寫入，唔好靜靜雞當冇資料
+  function flagIssue(r, keptMemory) {
+    let copied = false;
+    try {
+      const dup = Object.keys(localStorage).some(k => k.startsWith(CORRUPT_PREFIX) && localStorage.getItem(k) === r.raw);
+      if (!dup) localStorage.setItem(CORRUPT_PREFIX + Date.now(), r.raw);
+      copied = true;
+    } catch (e) { console.warn('corrupt copy failed', e); }
+    issue = { ok: r.ok, skipped: r.skipped, loaded: r.state.shifts.length, copied, keptMemory: !!keptMemory, raw: r.raw };
+    saveBlocked = true;
+  }
+
+  function clearIssue() { issue = null; saveBlocked = false; }
+
+  function initialLoad() {
+    const r = readStorage();
+    if (hasIssue(r)) flagIssue(r, false);
+    return r.state;
+  }
+
+  function save() {
+    if (saveBlocked) { toast('⚠️ 未儲存：請先處理頂部嘅資料問題'); return; }
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch (e) {
+      toast('儲存失敗：瀏覽器唔俾寫入資料');
+    }
+  }
+
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist().catch(() => {});
+  }
+
+  // ---------- 小工具 ----------
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // 自訂對話框：choices = [{ value, label, cls }]，永遠有「取消」。返回 Promise<value>，取消／Esc 返回 'cancel'
+  // 預設焦點放喺「取消」，唔好一撳 Enter 就做咗嘢
+  function choose(msg, choices, title) {
+    const d = $('confirmDlg');
+    $('confirmTitle').textContent = title || '';
+    $('confirmTitle').classList.toggle('hidden', !title);
+    $('confirmMsg').textContent = msg;
+    const acts = $('confirmActions');
+    // 一個選擇：左取消右確定；多過一個：直排，取消放最底
+    const stack = choices.length > 1;
+    const cancel = '<button class="btn" value="cancel">取消</button>';
+    const btns = choices.map(c => '<button class="btn ' + (c.cls || '') + '" value="' + esc(c.value) + '">' + esc(c.label) + '</button>').join('');
+    acts.classList.toggle('stack', stack);
+    acts.innerHTML = stack ? btns + cancel : cancel + btns;
+    d.returnValue = '';
+    d.showModal();
+    acts.querySelector('[value="cancel"]').focus();
+    return new Promise(resolve => {
+      d.addEventListener('close', () => resolve(d.returnValue || 'cancel'), { once: true });
+    });
+  }
+
+  // 代替 confirm()：返回 Promise<boolean>
+  function ask(msg, okLabel) {
+    return choose(msg, [{ value: 'ok', label: okLabel || '確定', cls: 'danger solid' }]).then(v => v === 'ok');
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function fmtDate(ms, withYear) {
+    const d = new Date(ms);
+    return (withYear ? d.getFullYear() + '年' : '') + (d.getMonth() + 1) + '月' + d.getDate() + '日（' + WD[d.getDay()] + '）';
+  }
+
+  function toDateInput(ms) { return C.dayKey(ms); }
+  function toTimeInput(ms) { return C.fmtClock(ms); }
+  function fromInputs(d, t) {
+    if (!d || !t) return null;
+    const [y, m, day] = d.split('-').map(Number);
+    const [h, mi] = t.split(':').map(Number);
+    return new Date(y, m - 1, day, h, mi, 0, 0).getTime();
+  }
+
+  function vibrate() { if (navigator.vibrate) navigator.vibrate(30); }
+
+  // ---------- 主題 ----------
+  function applyTheme() {
+    const root = document.documentElement;
+    if (state.theme === 'auto') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', state.theme);
+    document.querySelectorAll('[data-theme-opt]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.themeOpt === state.theme)));
+  }
+
+  // ---------- 分頁 ----------
+  let currentTab = 'punch';
+  function showTab(name) {
+    currentTab = name;
+    document.querySelectorAll('[data-view]').forEach(v => v.classList.toggle('hidden', v.id !== 'view-' + name));
+    document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+    render();
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+
+  // ---------- 打卡動作 ----------
+  // skipCheck：已經喺「呢更已經 X 小時」確認咗
+  function act(kind, now, skipCheck) {
+    now = now || Date.now();
+    const note = $('noteInput').value.trim();
+    // 一更太長先問一問，唔好直接存
+    if (kind === 'out' && !skipCheck) {
+      const s = C.openShift(state.shifts);
+      const chk = s ? C.clockOutCheck(s, now, FORGOT_HOURS) : 'ok';
+      if (chk !== 'ok') { confirmLongOut(s, now, chk, note); return; }
+    }
+    try {
+      if (kind === 'in') { state.shifts = C.clockIn(state.shifts, now, note); toast('已上班打卡 ' + C.fmtClock(now)); }
+      if (kind === 'bs') { state.shifts = C.breakStart(state.shifts, now); toast('開始休息 ' + C.fmtClock(now)); }
+      if (kind === 'be') { state.shifts = C.breakEnd(state.shifts, now); toast('休息結束 ' + C.fmtClock(now)); }
+      if (kind === 'out') {
+        state.shifts = C.clockOut(state.shifts, now, note);
+        const s = state.shifts.find(x => x.id === lastClosedId(now));
+        toast('已下班打卡 ' + C.fmtClock(now) + (s ? '，淨工時 ' + C.fmtDur(C.netMs(s, now)) : ''));
+      }
+      if (note && (kind === 'in' || kind === 'out')) $('noteInput').value = '';
+      else if (note) {
+        const s = C.openShift(state.shifts);
+        if (s) { s.note = s.note ? s.note + '；' + note : note; $('noteInput').value = ''; }
+      }
+      vibrate();
+      save();
+      render();
+    } catch (e) { toast(e.message); }
+  }
+
+  async function confirmLongOut(s, now, chk, note) {
+    const choices = [{ value: 'edit', label: '改返下班時間', cls: 'primary' }];
+    if (chk === 'confirm') choices.push({ value: 'now', label: '就係而家下班' });
+    const msg = '由 ' + fmtDate(s.start) + ' ' + C.fmtClock(s.start) + ' 開始。' +
+      (chk === 'edit' ? '一更最長 24 小時，要改返正確嘅下班時間先儲存到。' : '係咪忘記咗打卡？');
+    const v = await choose(msg, choices, '呢更已經 ' + C.fmtDur(now - s.start));
+    if (v === 'now') act('out', now, true);
+    else if (v === 'edit') {
+      openEditor(s.id, { confirmEnd: true, note });
+      if (note) $('noteInput').value = '';
+    }
+  }
+
+  function lastClosedId(now) {
+    const closed = state.shifts.filter(s => s.end != null).sort((a, b) => b.end - a.end);
+    return closed.length ? closed[0].id : null;
+  }
+
+  // ---------- 渲染：打卡頁 ----------
+  function renderPunch(now) {
+    $('nowTime').textContent = C.fmtClock(now);
+    $('nowDate').textContent = fmtDate(now, true);
+
+    const st = C.status(state.shifts);
+    const s = C.openShift(state.shifts);
+    const pill = $('statusPill');
+    pill.className = 'pill ' + st;
+    pill.textContent = st === 'off' ? '未上班' : st === 'working' ? '工作中' : '休息中';
+
+    const actions = $('actions');
+    const want = st;
+    if (actions.dataset.state !== want) {
+      actions.dataset.state = want;
+      actions.className = 'actions' + (st === 'working' ? ' two' : '');
+      if (st === 'off') actions.innerHTML = '<button class="big-btn in" data-act="in">上班打卡</button>';
+      if (st === 'working') actions.innerHTML = '<button class="big-btn brk" data-act="bs">開始休息</button><button class="big-btn out" data-act="out">下班打卡</button>';
+      if (st === 'break') actions.innerHTML = '<button class="big-btn brk" data-act="be">結束休息</button><button class="big-btn out" data-act="out" style="padding:14px;font-size:16px">直接下班</button>';
+    }
+
+    if (!s) {
+      $('timer').textContent = '0:00';
+      const last = state.shifts.filter(x => x.end != null).sort((a, b) => b.end - a.end)[0];
+      $('timerSub').textContent = last ? '上次下班：' + fmtDate(last.end) + ' ' + C.fmtClock(last.end) : '撳下面個掣開始記錄';
+    } else if (st === 'working') {
+      $('timer').textContent = C.fmtDur(C.netMs(s, now));
+      const brk = C.breakMs(s, now);
+      $('timerSub').textContent = C.fmtClock(s.start) + ' 上班' + (C.dayKey(s.start) !== C.dayKey(now) ? '（' + fmtDate(s.start) + '）' : '') + (brk ? ' · 已休息 ' + C.fmtDur(brk) : '');
+    } else {
+      const b = C.openBreak(s);
+      $('timer').textContent = C.fmtDur(now - b.start);
+      $('timerSub').textContent = '休息緊 · 今更淨工時 ' + C.fmtDur(C.netMs(s, now));
+    }
+
+    // 忘記下班提示
+    const banner = $('forgotBanner');
+    if (s && now - s.start > FORGOT_HOURS * C.HOUR) {
+      banner.classList.remove('hidden');
+      $('forgotText').textContent = '由 ' + fmtDate(s.start) + ' ' + C.fmtClock(s.start) + ' 開始已經 ' + C.fmtDur(now - s.start) + '，係咪忘記咗下班打卡？可以改返正確嘅下班時間。';
+      $('forgotFix').onclick = () => openEditor(s.id, { confirmEnd: true });
+    } else banner.classList.add('hidden');
+
+    // 統計
+    const today0 = C.startOfDay(now);
+    $('sToday').textContent = C.fmtDur(C.sumNet(state.shifts, today0, C.addDays(today0, 1), now));
+    const w0 = C.startOfWeek(now);
+    $('sWeek').textContent = C.fmtDur(C.sumNet(state.shifts, w0, C.addDays(w0, 7), now));
+    const m0 = C.startOfMonth(now);
+    $('sMonth').textContent = C.fmtDur(C.sumNet(state.shifts, m0, C.addMonths(m0, 1), now));
+
+    // 今日列表（包括由尋日開始、仲未完嘅更）
+    const todays = state.shifts.filter(x => x.start >= today0 || x.end == null || (x.end != null && x.end >= today0))
+      .sort((a, b) => a.start - b.start);
+    // 資料冇變就唔好重寫成個列表（每秒重寫會令撳緊嘅記錄撳唔到），淨係更新進行中嗰更嘅數字
+    const list = $('todayList');
+    const sig = today0 + JSON.stringify(todays); // 過咗午夜「計入邊日」會變，都要重畫
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.innerHTML = todays.length ? todays.map(x => shiftHTML(x, now, today0)).join('') : '<div class="empty small">今日未有記錄</div>';
+    } else {
+      todays.filter(x => x.end == null).forEach(x => {
+        const el = list.querySelector('[data-edit="' + x.id + '"]');
+        if (!el) return;
+        const meta = el.querySelector('.meta'), net = el.querySelector('.net');
+        const m = shiftMetaHTML(x, now), n = C.fmtDur(C.netMs(x, now));
+        if (meta.innerHTML !== m) meta.innerHTML = m;
+        if (net.textContent !== n) net.textContent = n;
+      });
+    }
+  }
+
+  function shiftMetaHTML(s, now) {
+    return (s.breaks.length ? '休息 ' + C.fmtDur(C.breakMs(s, now)) + '（' + s.breaks.length + ' 次）' : '冇休息') +
+      (s.note ? ' · ' + esc(s.note) : '');
+  }
+
+  // today0（可選）：今日記錄用。由之前開始嘅更唔計入今日總數（跨日班計入上班嗰日），要標明計入邊日
+  function shiftHTML(s, now, today0) {
+    const endTxt = s.end == null ? '進行中' : C.fmtClock(s.end);
+    const crosses = s.end != null && C.dayKey(s.end) !== C.dayKey(s.start);
+    const earlier = today0 != null && s.start < today0;
+    const d = new Date(s.start);
+    const tag = earlier ? '<span class="tag">計入 ' + (d.getMonth() + 1) + '月' + d.getDate() + '日</span>'
+      : crosses ? '<span class="tag">跨日</span>' : '';
+    return '<button class="shift" data-edit="' + s.id + '">' +
+      '<div><div class="times num">' + C.fmtClock(s.start) + ' – ' + endTxt +
+      tag + (s.end == null ? '<span class="tag live">進行中</span>' : '') + '</div>' +
+      '<div class="meta">' + shiftMetaHTML(s, now) + '</div></div>' +
+      '<div class="net num">' + C.fmtDur(C.netMs(s, now)) + '</div></button>';
+  }
+
+  document.addEventListener('click', e => {
+    const a = e.target.closest('[data-act]');
+    if (a) { act(a.dataset.act); return; }
+    const ed = e.target.closest('[data-edit]');
+    if (ed) openEditor(ed.dataset.edit);
+  });
+
+  // ---------- 渲染：記錄 ----------
+  let logMonth = C.startOfMonth(Date.now());
+  $('logPrev').onclick = () => { logMonth = C.addMonths(logMonth, -1); render(); };
+  $('logNext').onclick = () => { logMonth = C.addMonths(logMonth, 1); render(); };
+
+  function renderLog(now) {
+    const d = new Date(logMonth);
+    $('logMonthLbl').textContent = d.getFullYear() + '年' + (d.getMonth() + 1) + '月';
+    const end = C.addMonths(logMonth, 1);
+    const list = C.shiftsInRange(state.shifts, logMonth, end).sort((a, b) => b.start - a.start);
+    const sum = C.summarize(state.shifts, logMonth, end, now);
+    $('logSummary').textContent = sum.count ? sum.days + ' 日 · ' + sum.count + ' 更 · 淨工時 ' + C.fmtDur(sum.net) : '';
+    if (!list.length) { $('logList').innerHTML = '<div class="empty">呢個月未有記錄<br><span class="small">可以撳「補打卡」手動加</span></div>'; return; }
+    const groups = new Map();
+    list.forEach(s => { const k = C.dayKey(s.start); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(s); });
+    let html = '';
+    groups.forEach((arr, k) => {
+      const tot = arr.reduce((a, s) => a + C.netMs(s, now), 0);
+      html += '<div class="day-group"><div class="day-head"><span>' + fmtDate(arr[0].start) + '</span><span class="num">' + C.fmtDur(tot) + '</span></div>' +
+        arr.slice().sort((a, b) => a.start - b.start).map(s => shiftHTML(s, now)).join('') + '</div>';
+    });
+    $('logList').innerHTML = html;
+  }
+
+  // ---------- 渲染：統計 ----------
+  let stRange = 'week';
+  let stAnchor = Date.now();
+  document.querySelectorAll('[data-range]').forEach(b => b.addEventListener('click', () => {
+    stRange = b.dataset.range; stAnchor = Date.now();
+    document.querySelectorAll('[data-range]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    render();
+  }));
+  $('stPrev').onclick = () => { stAnchor = stRange === 'week' ? C.addDays(C.startOfWeek(stAnchor), -7) : C.addMonths(C.startOfMonth(stAnchor), -1); render(); };
+  $('stNext').onclick = () => { stAnchor = stRange === 'week' ? C.addDays(C.startOfWeek(stAnchor), 7) : C.addMonths(C.startOfMonth(stAnchor), 1); render(); };
+
+  function renderStats(now) {
+    let from, to, nDays, label;
+    if (stRange === 'week') {
+      from = C.startOfWeek(stAnchor); to = C.addDays(from, 7); nDays = 7;
+      const a = new Date(from), b = new Date(C.addDays(from, 6));
+      label = (a.getMonth() + 1) + '/' + a.getDate() + ' – ' + (b.getMonth() + 1) + '/' + b.getDate();
+      if (from === C.startOfWeek(now)) label += '（本週）';
+    } else {
+      from = C.startOfMonth(stAnchor); to = C.addMonths(from, 1);
+      nDays = Math.round((to - from) / C.DAY);
+      const a = new Date(from);
+      label = a.getFullYear() + '年' + (a.getMonth() + 1) + '月';
+    }
+    $('stLbl').textContent = label;
+    const sum = C.summarize(state.shifts, from, to, now);
+    $('stTotal').textContent = C.fmtDur(sum.net);
+    $('stDays').textContent = sum.days;
+    $('stAvg').textContent = C.fmtDur(sum.days ? sum.net / sum.days : 0);
+    $('stGross').textContent = C.fmtDur(sum.gross);
+    $('stBreak').textContent = C.fmtDur(sum.brk);
+    $('stDec').textContent = C.hoursDecimal(sum.net) + ' 小時';
+
+    const days = C.dailyTotals(state.shifts, from, nDays, now);
+    const max = Math.max(C.HOUR * 8, ...days.map(d => d.net));
+    const todayKey = C.dayKey(now);
+    $('stBars').style.gap = stRange === 'week' ? '8px' : '2px';
+    $('stBars').innerHTML = days.map((d, i) => {
+      const dt = new Date(d.day);
+      const h = Math.round(d.net / max * 100);
+      const lbl = stRange === 'week' ? WD[dt.getDay()] : ((i === 0 || (i + 1) % 5 === 0) ? String(dt.getDate()) : '');
+      const val = stRange === 'week' && d.net ? C.fmtDur(d.net) : '';
+      return '<div class="bar-col' + (C.dayKey(d.day) === todayKey ? ' today' : '') + '" title="' + (dt.getMonth() + 1) + '/' + dt.getDate() + ' ' + C.fmtDur(d.net) + '">' +
+        (val ? '<div class="bar-val num">' + val + '</div>' : '') +
+        '<div class="bar' + (d.net ? '' : ' zero') + '" style="height:' + Math.max(h, 1) + '%"></div>' +
+        '<div class="bar-lbl">' + (lbl || '&nbsp;') + '</div></div>';
+    }).join('');
+  }
+
+  // ---------- 渲染：設定 ----------
+  function renderSettings() {
+    const sel = $('exportRange');
+    const prev = sel.value;
+    const months = new Set(state.shifts.map(s => C.startOfMonth(s.start)));
+    months.add(C.startOfMonth(Date.now()));
+    const opts = ['<option value="all">全部記錄（' + state.shifts.length + ' 更）</option>'].concat(
+      Array.from(months).sort((a, b) => b - a).map(m => {
+        const d = new Date(m);
+        return '<option value="' + m + '">' + d.getFullYear() + '年' + (d.getMonth() + 1) + '月</option>';
+      }));
+    sel.innerHTML = opts.join('');
+    sel.value = prev && Array.from(sel.options).some(o => o.value === prev) ? prev : String(C.startOfMonth(Date.now()));
+    $('lastBackup').textContent = state.lastBackup ? '上次備份：' + fmtDate(state.lastBackup, true) + ' ' + C.fmtClock(state.lastBackup) : '仲未備份過';
+    $('storageInfo').textContent = '共 ' + state.shifts.length + ' 更記錄 · 只儲存喺呢部裝置';
+  }
+
+  function download(name, text, type) {
+    const blob = new Blob([text], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  $('exportCsv').onclick = () => {
+    const v = $('exportRange').value;
+    const now = Date.now();
+    let list = state.shifts, name = '打卡記錄_全部.csv';
+    if (v !== 'all') {
+      const m = Number(v);
+      list = C.shiftsInRange(state.shifts, m, C.addMonths(m, 1));
+      const d = new Date(m);
+      name = '打卡記錄_' + d.getFullYear() + '-' + C.pad(d.getMonth() + 1) + '.csv';
+    }
+    if (!list.length) { toast('呢個範圍冇記錄'); return; }
+    download(name, C.toCSV(list, now), 'text/csv;charset=utf-8');
+    toast('已匯出 ' + list.length + ' 更');
+  };
+
+  $('backupBtn').onclick = () => {
+    const now = Date.now();
+    download('打卡備份_' + C.dayKey(now) + '.json', JSON.stringify({ app: 'punchclock', version: 1, exportedAt: now, shifts: state.shifts }, null, 2), 'application/json');
+    state.lastBackup = now; save(); render();
+  };
+  $('restoreBtn').onclick = () => $('restoreFile').click();
+  $('restoreFile').onchange = async e => {
+    const f = e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    try {
+      const shifts = C.normalizeImport(JSON.parse(await f.text()));
+      if (!await ask('還原會用備份入面嘅 ' + shifts.length + ' 更記錄，取代而家嘅 ' + state.shifts.length + ' 更。確定？', '還原')) return;
+      clearIssue(); // 用家明確揀咗用備份取代
+      state.shifts = shifts; save(); render();
+      toast('已還原 ' + shifts.length + ' 更');
+    } catch (err) { toast('還原失敗：' + err.message); }
+  };
+  $('wipeBtn').onclick = async () => {
+    if (!state.shifts.length) { toast('冇記錄'); return; }
+    if (!await ask('確定刪除全部 ' + state.shifts.length + ' 更記錄？無法復原。', '全部刪除')) return;
+    clearIssue();
+    state.shifts = []; save(); render(); toast('已刪除全部記錄');
+  };
+
+  $('dataDownload').onclick = () => {
+    if (issue && issue.raw != null) download('打卡原始資料_' + C.dayKey(Date.now()) + '.json', issue.raw, 'application/json');
+  };
+  $('dataAccept').onclick = async () => {
+    if (!issue) return;
+    const msg = (issue.copied ? '' : '⚠️ 原始資料另存失敗，繼續嘅話會被覆蓋，建議先下載原始資料。') +
+      '確認之後，會用畫面上而家嘅 ' + state.shifts.length + ' 更記錄覆蓋儲存咗嘅資料。繼續？';
+    if (!await ask(msg, '繼續')) return;
+    clearIssue(); save(); render();
+    toast('已儲存 ' + state.shifts.length + ' 更');
+  };
+
+  function renderDataBanner() {
+    $('dataBanner').classList.toggle('hidden', !issue);
+    if (!issue) return;
+    let txt;
+    if (issue.keptMemory) txt = '儲存咗嘅資料出咗問題，畫面繼續顯示之前載入咗嘅記錄。';
+    else if (issue.ok) txt = '有 ' + issue.skipped + ' 更記錄格式唔啱，已經略過，其餘 ' + issue.loaded + ' 更正常載入。';
+    else txt = '讀唔到儲存咗嘅記錄，資料可能已經損壞。';
+    txt += issue.copied ? '原始資料已經另存一份。' : '原始資料另存失敗，請先下載原始資料。';
+    $('dataText').textContent = txt + '你確認之前，任何改動都唔會儲存。';
+  }
+  document.querySelectorAll('[data-theme-opt]').forEach(b => b.addEventListener('click', () => {
+    state.theme = b.dataset.themeOpt; save(); applyTheme();
+  }));
+
+  // ---------- 編輯器 ----------
+  const dlg = $('editDlg');
+  let editing = null; // 暫存嘅 shift 副本
+  let original = null; // 打開時嘅原本記錄（新增就係 null），用嚟保留精確到秒嘅時間
+  let isNew = false;
+  let requireEnd = false; // 忘記打卡改下班時間：一定要填下班時間
+  let autoEndDate = false; // 下班日期係咪由系統自動轉咗做翌日（用家自己改日期就唔算）
+  let endHint = '';        // 下班框下面嘅提示
+  let endHintDay = '';     // 提示講緊嘅日期（yyyy-mm-dd）
+
+  // opts.confirmEnd：由「呢更已經 X 小時」嗰度嚟，下班時間留空等用家自己填
+  function openEditor(id, opts) {
+    const now = Date.now();
+    opts = opts || {};
+    requireEnd = !!opts.confirmEnd;
+    autoEndDate = false;
+    endHint = '';
+    $('eStartHint').classList.add('hidden');
+    $('eEndD').classList.remove('moved');
+    if (id) {
+      const s = state.shifts.find(x => x.id === id);
+      if (!s) return;
+      editing = JSON.parse(JSON.stringify(s));
+      original = JSON.parse(JSON.stringify(s));
+      isNew = false;
+      if (opts.note) editing.note = editing.note ? editing.note + '；' + opts.note : opts.note;
+    } else {
+      // 預設 9:00–18:00；今日未到 18:00 就預設琴日，唔好一開就係未來時間
+      const base = new Date();
+      if (new Date().setHours(18, 0, 0, 0) > now) base.setDate(base.getDate() - 1);
+      const start = new Date(base); start.setHours(9, 0, 0, 0);
+      const end = new Date(base); end.setHours(18, 0, 0, 0);
+      original = null;
+      editing = { id: C.uid(), start: start.getTime(), end: end.getTime(), breaks: [{ start: new Date(start).setHours(13, 0, 0, 0), end: new Date(start).setHours(14, 0, 0, 0) }], note: '' };
+      isNew = true;
+    }
+    $('editTitle').textContent = isNew ? '補打卡' : requireEnd ? '確認下班時間' : '修改記錄';
+    $('eDelete').classList.toggle('hidden', isNew);
+    $('eStartD').value = toDateInput(editing.start);
+    $('eStartT').value = toTimeInput(editing.start);
+    // 確認下班時間：日期預設上班嗰日，時間留空（唔好預設而家，手快撳儲存就會存錯）
+    $('eEndD').value = editing.end == null ? (requireEnd ? toDateInput(editing.start) : '') : toDateInput(editing.end);
+    $('eEndT').value = editing.end == null ? '' : toTimeInput(editing.end);
+    $('eNote').value = editing.note || '';
+    // 日期框唔俾揀未來日子
+    $('eStartD').max = $('eEndD').max = C.dayKey(now);
+    renderBreakInputs();
+    prevStartDate = $('eStartD').value;
+    readEditor();
+    dlg.showModal();
+  }
+
+  function renderBreakInputs() {
+    const maxD = C.dayKey(Date.now());
+    $('eBreaks').innerHTML = editing.breaks.map((b, i) =>
+      '<div class="break-item" data-bi="' + i + '">' +
+      '<div class="row spread small muted"><span>休息 ' + (i + 1) + '</span><button type="button" class="btn ghost" data-rmb="' + i + '" style="color:var(--danger)">移除</button></div>' +
+      '<div class="dt" style="margin-top:4px"><input type="date" data-f="sd" max="' + maxD + '" value="' + toDateInput(b.start) + '"><input type="time" data-f="st" value="' + toTimeInput(b.start) + '"></div>' +
+      '<div class="small muted" style="margin:6px 0 4px">至 <span>（留空 = 仲休息緊）</span></div>' +
+      '<div class="dt"><input type="date" data-f="ed" max="' + maxD + '" value="' + (b.end == null ? '' : toDateInput(b.end)) + '"><input type="time" data-f="et" value="' + (b.end == null ? '' : toTimeInput(b.end)) + '"></div>' +
+      '</div>').join('') || '<div class="muted small" style="padding:6px 0">冇休息記錄</div>';
+  }
+
+  function readEditor() {
+    const s = editing;
+    const o = original || { breaks: [] };
+    s.start = C.keepPrecise(o.start, fromInputs($('eStartD').value, $('eStartT').value));
+    const sd = $('eStartD').value, et = $('eEndT').value;
+    // 之前係自動轉咗做翌日嘅，就由上班日期重新計，時間改返遲過上班就會轉返同一日
+    const ed = autoEndDate ? sd : $('eEndD').value;
+    s.end = et ? C.keepPrecise(o.end, fromInputs(ed || sd, et)) : null;
+    // 如果下班時間早過上班而又冇揀日期 → 當翌日（跨日班）
+    // 要「早過」先算：同一分鐘上落班（例如唔夠 1 分鐘）唔係跨日
+    const wasAuto = autoEndDate;
+    autoEndDate = s.end != null && s.start != null && s.end < s.start && (!ed || ed === sd);
+    if (autoEndDate) s.end = C.addDays(s.end, 1);
+    if (s.end != null && (autoEndDate || wasAuto)) $('eEndD').value = toDateInput(s.end);
+    // 日期自動轉咗就喺下面講一聲，唔好靜靜雞改；提示留住，直到日期再變或者用家自己改日期
+    if (autoEndDate) endHint = '下班時間早過上班，已自動當係翌日（' + fmtDate(s.end) + '）';
+    else if (wasAuto && s.end != null) endHint = '下班日期已改返同上班同一日（' + fmtDate(s.end) + '）';
+    if (endHint && s.end != null && (autoEndDate || wasAuto)) endHintDay = toDateInput(s.end);
+    // 日期框已經唔係提示講嗰日（例如用家自己揀咗第二日），提示就唔啱，收埋
+    if (s.end == null || $('eEndD').value !== endHintDay) endHint = '';
+    $('eEndHint').textContent = endHint;
+    $('eEndHint').classList.toggle('hidden', !endHint);
+    $('eEndD').classList.toggle('auto', !!endHint);
+    s.breaks = Array.from(document.querySelectorAll('[data-bi]')).map((el, i) => {
+      const g = f => el.querySelector('[data-f="' + f + '"]').value;
+      const ob = o.breaks[i] || {};
+      const bs = C.keepPrecise(ob.start, fromInputs(g('sd'), g('st')));
+      const be = g('et') ? C.keepPrecise(ob.end, fromInputs(g('ed') || g('sd'), g('et'))) : null;
+      return { start: bs, end: be };
+    }).filter(b => b.start != null);
+    s.note = $('eNote').value.trim();
+    const now = Date.now();
+    const errs = s.start ? C.validateShift(s, state.shifts, now) : ['請輸入上班時間'];
+    if (requireEnd && s.end == null) errs.unshift('請輸入下班時間');
+    $('eErrors').innerHTML = errs.map(esc).join('<br>');
+    // 遲過而家嘅時間：日期同時間框一齊標紅
+    const mark = (ms, dEl, tEl) => { const bad = ms != null && ms > now; dEl.classList.toggle('invalid', bad); tEl.classList.toggle('invalid', bad); };
+    mark(s.start, $('eStartD'), $('eStartT'));
+    mark(s.end, $('eEndD'), $('eEndT'));
+    document.querySelectorAll('[data-bi]').forEach(el => {
+      const q = f => el.querySelector('[data-f="' + f + '"]');
+      const bs = fromInputs(q('sd').value, q('st').value);
+      const be = q('et').value ? fromInputs(q('ed').value || q('sd').value, q('et').value) : null;
+      mark(bs, q('sd'), q('st'));
+      mark(be, q('ed'), q('et'));
+    });
+    $('eCalc').textContent = s.start ? '總時間 ' + C.fmtDur(C.grossMs(s, now)) + ' − 休息 ' + C.fmtDur(C.breakMs(s, now)) + ' = 淨工時 ' + C.fmtDur(C.netMs(s, now)) : '';
+    $('eSave').disabled = errs.length > 0;
+    return errs;
+  }
+
+  // 改上班日期時，休息同下班日期跟住一齊移
+  let prevStartDate = null;
+  $('eStartD').addEventListener('focus', () => { prevStartDate = $('eStartD').value; });
+  $('eStartD').addEventListener('change', () => {
+    const oldD = prevStartDate || toDateInput(editing.start);
+    const newD = $('eStartD').value;
+    prevStartDate = newD;
+    if (!oldD || !newD || oldD === newD) return;
+    const delta = Math.round((fromInputs(newD, '12:00') - fromInputs(oldD, '12:00')) / C.DAY);
+    const shiftInput = el => {
+      if (!el.value) return false;
+      el.value = toDateInput(C.addDays(fromInputs(el.value, '12:00'), delta));
+      el.classList.add('moved');
+      return true;
+    };
+    const endMoved = shiftInput($('eEndD'));
+    let breaksMoved = 0;
+    document.querySelectorAll('#eBreaks [data-bi]').forEach(el => {
+      const a = shiftInput(el.querySelector('[data-f="sd"]')), b = shiftInput(el.querySelector('[data-f="ed"]'));
+      if (a || b) breaksMoved++;
+    });
+    // 跟住移咗嘅日期要講一聲，唔好靜靜雞改
+    const what = [];
+    if (endMoved) what.push('下班');
+    if (breaksMoved) what.push(breaksMoved === 1 ? '休息' : breaksMoved + ' 段休息');
+    const hint = what.length ? what.join('同') + '日期已跟住一齊移' + (delta > 0 ? '後 ' : '前 ') + Math.abs(delta) + ' 日' : '';
+    $('eStartHint').textContent = hint;
+    $('eStartHint').classList.toggle('hidden', !hint);
+  });
+  // 用家自己揀下班日期 → 聽佢嘅，唔再當自動轉（要喺 editForm 嘅 listener 之前行）
+  ['input', 'change'].forEach(ev => $('eEndD').addEventListener(ev, () => { autoEndDate = false; }));
+  $('editForm').addEventListener('input', readEditor);
+  $('editForm').addEventListener('change', readEditor);
+  $('eAddBreak').onclick = () => {
+    readEditor();
+    const base = editing.breaks.length ? (editing.breaks[editing.breaks.length - 1].end || Date.now()) + 30 * C.MIN : editing.start + 4 * C.HOUR;
+    editing.breaks.push({ start: base, end: base + 30 * C.MIN });
+    renderBreakInputs(); readEditor();
+  };
+  $('eBreaks').addEventListener('click', e => {
+    const r = e.target.closest('[data-rmb]');
+    if (!r) return;
+    readEditor();
+    editing.breaks.splice(Number(r.dataset.rmb), 1);
+    renderBreakInputs(); readEditor();
+  });
+  $('editClose').onclick = () => dlg.close();
+  $('eDelete').onclick = async () => {
+    if (!await ask('刪除呢更記錄？', '刪除')) return;
+    state.shifts = state.shifts.filter(x => x.id !== editing.id);
+    save(); dlg.close(); render(); toast('已刪除');
+  };
+  $('editForm').addEventListener('submit', e => {
+    e.preventDefault();
+    if (readEditor().length) return;
+    editing.breaks.sort((a, b) => a.start - b.start);
+    const i = state.shifts.findIndex(x => x.id === editing.id);
+    if (i >= 0) state.shifts[i] = editing; else state.shifts.push(editing);
+    save(); dlg.close(); render();
+    toast(isNew ? '已補打卡' : '已儲存');
+  });
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  $('addShift').onclick = () => openEditor(null);
+
+  // ---------- 主渲染 ----------
+  function render() {
+    const now = Date.now();
+    renderDataBanner();
+    if (currentTab === 'punch') renderPunch(now);
+    if (currentTab === 'log') renderLog(now);
+    if (currentTab === 'stats') renderStats(now);
+    if (currentTab === 'settings') renderSettings();
+  }
+
+  applyTheme();
+  render();
+  setInterval(() => { if (currentTab === 'punch' && !dlg.open) render(); }, 1000);
+  // 由背景返嚟時重新讀；讀唔到就繼續用記憶體入面嘅資料，唔好換成空白
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    const r = readStorage();
+    if (hasIssue(r)) { if (!saveBlocked) flagIssue(r, true); }
+    else if (!saveBlocked) state = r.state;
+    render();
+  });
+
+  // ---------- Service worker（離線） ----------
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW register failed', err));
+  }
+})();
+</script>
+</body>
+</html>

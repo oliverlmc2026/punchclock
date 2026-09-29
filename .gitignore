@@ -1,0 +1,9 @@
+# 唔上載：文件、測試、本機設定
+handoff.md
+description.md
+README.md
+tests/
+.claude/
+
+# macOS
+.DS_Store

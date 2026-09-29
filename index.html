@@ -977,6 +977,18 @@ input.invalid { border-color: var(--danger); outline: 2px solid var(--danger); o
   });
   // 用家自己揀下班日期 → 聽佢嘅，唔再當自動轉（要喺 editForm 嘅 listener 之前行）
   ['input', 'change'].forEach(ev => $('eEndD').addEventListener(ev, () => { autoEndDate = false; }));
+  // iPhone 時間滾輪嘅「重設」會清空個框；改做「取消」：還原返打開滾輪之前嘅時間
+  // 只限觸控裝置，電腦用 backspace 逐格改時會短暫變空，唔好搶住還原
+  if (matchMedia('(pointer: coarse)').matches) {
+    $('editForm').addEventListener('focusin', e => {
+      if (e.target.type === 'time') e.target.dataset.prev = e.target.value;
+    });
+    // capture：要喺下面 readEditor 之前還原
+    ['input', 'change'].forEach(ev => $('editForm').addEventListener(ev, e => {
+      const el = e.target;
+      if (el.type === 'time' && !el.value && el.dataset.prev) el.value = el.dataset.prev;
+    }, true));
+  }
   $('editForm').addEventListener('input', readEditor);
   $('editForm').addEventListener('change', readEditor);
   $('eAddBreak').onclick = () => {

@@ -1,5 +1,5 @@
 // 打卡記錄 service worker：離線快取（改咗檔案就改 VERSION）
-const VERSION = 'punchclock-v11';
+const VERSION = 'punchclock-v12';
 const ASSETS = [
   './',
   './index.html',

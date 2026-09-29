@@ -170,7 +170,10 @@ dialog::backdrop { background: rgba(0,0,0,.4); }
 }
 .field { margin-top: 12px; }
 .field > label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
-.dt { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; }
+/* minmax(0,…) + min-width:0：iOS 日期／時間框有自己嘅最小闊度，唔咁寫會爆出右邊 */
+.dt { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 8px; }
+.dt input { min-width: 0; -webkit-appearance: none; appearance: none; }
+.dt input::-webkit-date-and-time-value { text-align: center; }
 .break-item { border: 1px solid var(--line); border-radius: 12px; padding: 10px; margin-top: 8px; }
 .hint { color: var(--accent); font-size: 13px; margin-top: 6px; }
 input.auto, input.moved { border-color: var(--accent); }
